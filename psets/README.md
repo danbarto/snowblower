@@ -14,4 +14,17 @@ Run with `cmsRun nanogen_cfg.py` in `CMSSW_10_6_19` or higher.
 
 ## GEN and Delphes
 
-WIP
+Create a config with the `fragment.py`:
+
+```
+export SCRAM_ARCH=slc7_amd64_gcc820
+cmsrel CMSSW_11_0_2
+cd CMSSW_11_0_2/src/
+cmsenv
+mkdir -p Configuration/GenProduction/python/
+cp ../../fragment.py Configuration/GenProduction/python/
+scram b -j 8
+
+cmsDriver.py Configuration/GenProduction/python/fragment.py --fileout file:output_gen.root --mc --eventcontent RAWSIM,LHE --datatier GEN,LHE --conditions 110X_mcRun4_realistic_v3 --beamspot HLLHC14TeV --step LHE,GEN --geometry Extended2026D49 --era Phase2C9 --python_filename gen_cfg.py -n 10 --no_exec
+```
+
