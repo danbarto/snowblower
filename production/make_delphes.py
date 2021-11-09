@@ -16,18 +16,22 @@ import os
 def submit():
 
     requests = {
-        'HbbTest': '/hadoop/cms/store/user/dspitzba/UPSG/gridpacks/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'MH3_1500_MH4_150_Mchi_10': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_150_Mchi_10_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'MH3_1500_MH4_250_Mchi_10': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_250_Mchi_10_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'MH3_1500_MH4_300_Mchi_10': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_300_Mchi_10_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'MH3_1500_MH4_400_Mchi_10': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_400_Mchi_10_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+
     }
 
     total_summary = {}
 
     extra_requirements = "true"
 
-    tag = "v4"
+    tag = "v3"
     #events_per_point = 500000 # produced 500k events before
     #events_per_job = 2000 # up to 2000 works
-    events_per_point = 50
-    events_per_job = 10
+    events_per_point = 500000
+    events_per_job = 5000
     njobs = int(events_per_point)//events_per_job
 
     gen_tasks = []
