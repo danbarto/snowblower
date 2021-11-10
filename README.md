@@ -8,6 +8,7 @@ git clone --recursive git@github.com:danbarto/snowblower.git
 cd snowblower
 cmsrel CMSSW_10_6_19
 cd CMSSW_10_6_19/src/
+cmsenv
 git cms-init
 cmsenv
 scram b -j 8
