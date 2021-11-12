@@ -112,7 +112,7 @@ def copy_and_merge(name, target, files, n_chunks):
         success = hadd(target+'/'+name+'_%s.root'%i, to_merge)
         if success:
             for f in to_merge:
-                shutil.rmtree(f)
+                os.remove(f)
     return True
 
 
@@ -172,5 +172,14 @@ if __name__ == '__main__':
             if bkg not in database.keys():
                 database[bkg] = get_sample_info(bkg)
 
-            with open('samples.yaml', 'w') as f:
-                yaml.dump(database, f, Dumper=Dumper)
+            	with open('samples.yaml', 'w') as f:
+                	yaml.dump(database, f, Dumper=Dumper)
+
+        # We can hadd ~4 delphes samples, and ~20 ntuple files
+        sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
+        copy_and_merge(
+            sample_name,
+            '/nfs-7/userdata/dspitzba/%s/'%sample_name,
+            database[sample_name]['ntuples'],
+            15,
+        )
