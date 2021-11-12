@@ -1,3 +1,9 @@
+# CMSSW
+CMSSW_10_6_19/
+tools/logs/
+tools/workerenv.tar.gz
+tools/analysis.tar.gz
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
