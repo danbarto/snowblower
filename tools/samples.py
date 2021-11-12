@@ -172,16 +172,31 @@ if __name__ == '__main__':
             if bkg not in database.keys():
                 database[bkg] = get_sample_info(bkg)
 
-            	with open('../data/samples.yaml', 'w') as f:
-                	yaml.dump(database, f, Dumper=Dumper)
+                with open('../data/samples.yaml', 'w') as f:
+                    yaml.dump(database, f, Dumper=Dumper)
 
-	test_merge = False
-	if test_merge:
-        	# We can hadd ~4 delphes samples, and ~20 ntuple files
-        	sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
-        	copy_and_merge(
-        	    sample_name,
-        	    '/nfs-7/userdata/dspitzba/%s/'%sample_name,
-        	    database[sample_name]['ntuples'],
-        	    15,
-        	)
+
+        ## Hacking in stupid samples that are somewhere else...
+        if not 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU' in database.keys():
+            with open('../data/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU.log', 'r') as f:
+                lines = f.readlines()
+            tt_files = [ l.replace('\n', '') for l in lines ]
+            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'] = {}
+            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['delphes'] = []
+            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'] = tt_files
+            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['xsec'] = 900 # FIXME
+
+            with open('../data/samples.yaml', 'w') as f:
+                    yaml.dump(database, f, Dumper=Dumper)
+
+
+    test_merge = False
+    if test_merge:
+        # We can hadd ~4 delphes samples, and ~20 ntuple files
+        sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
+        copy_and_merge(
+            sample_name,
+            '/nfs-7/userdata/dspitzba/%s/'%sample_name,
+            database[sample_name]['ntuples'],
+            15,
+        )

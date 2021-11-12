@@ -16,7 +16,8 @@ import os
 def submit():
 
     requests = {
-        'HbbTest': '/hadoop/cms/store/user/dspitzba/UPSG/gridpacks/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'HbbTest': '/hadoop/cms/store/user/dspitzba/UPSG/gridpacks/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'HbbMET_1500_750_1': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_750_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
     }
 
     total_summary = {}
