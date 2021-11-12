@@ -100,7 +100,7 @@ if __name__ == '__main__':
     args = argParser.parse_args()
 
 
-    with open('../tools/samples.yaml', 'r') as f:
+    with open('../data/samples.yaml', 'r') as f:
         samples = yaml.load(f, Loader = Loader)
 
     #f_in = "root://cmseos.fnal.gov//store/user/snowmass/Snowmass2021//Delphes/DY0Jets_MLL-50_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PUDY0Jets_MLL-50_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_127_3.root"

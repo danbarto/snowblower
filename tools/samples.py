@@ -162,7 +162,7 @@ if __name__ == '__main__':
         ]
 
         try:
-            with open('samples.yaml', 'r') as f:
+            with open('../data/samples.yaml', 'r') as f:
                 database = yaml.load(f, Loader=Loader)
         except IOError:
             database = {}
@@ -172,14 +172,16 @@ if __name__ == '__main__':
             if bkg not in database.keys():
                 database[bkg] = get_sample_info(bkg)
 
-            	with open('samples.yaml', 'w') as f:
+            	with open('../data/samples.yaml', 'w') as f:
                 	yaml.dump(database, f, Dumper=Dumper)
 
-        # We can hadd ~4 delphes samples, and ~20 ntuple files
-        sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
-        copy_and_merge(
-            sample_name,
-            '/nfs-7/userdata/dspitzba/%s/'%sample_name,
-            database[sample_name]['ntuples'],
-            15,
-        )
+	test_merge = False
+	if test_merge:
+        	# We can hadd ~4 delphes samples, and ~20 ntuple files
+        	sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
+        	copy_and_merge(
+        	    sample_name,
+        	    '/nfs-7/userdata/dspitzba/%s/'%sample_name,
+        	    database[sample_name]['ntuples'],
+        	    15,
+        	)
