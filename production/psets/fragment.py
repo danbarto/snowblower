@@ -20,10 +20,12 @@ generator = cms.EDFilter("Pythia8HadronizerFilter",
                          PythiaParameters = cms.PSet(
                             pythia8CommonSettingsBlock,
                             pythia8CP5SettingsBlock,
-                            parameterSets = cms.vstring('pythia8CommonSettings',
-                                    'pythia8CP5Settings',
-                                    )
+                            parameterSets = cms.vstring(
+                                'pythia8CommonSettings',
+                                'pythia8CP5Settings',
                             )
                          )
+                         )
+
 ProductionFilterSequence = cms.Sequence(generator)
 
