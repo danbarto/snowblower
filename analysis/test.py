@@ -54,6 +54,56 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("pt", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
+	    "fatjet_pt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+	    "fatjet_eta": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("eta", "$\eta$", 33, -4, 4),
+            ),
+	    "fatjet_phi": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 3, -4, 4),
+            ),
+	    "fatjet_mass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+	    "fatjet_sdmass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+	    "fatjet_tau1": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_1$", 10, 0, 1),
+            ),
+	    "fatjet_tau2": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_2$", 10, 0, 1),
+            ),
+	    "fatjet_tau3": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_3$", 10, 0, 1),
+            ),
+	    "fatjet_tau4": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_4$", 10, 0, 1),
+            ),
+	    "nfatjet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
+            ),
             'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
                 partial(processor.defaultdict_accumulator, int)
@@ -73,10 +123,60 @@ class FlatProcessor(processor.ProcessorABC):
         output['cutflow'][dataset]['met>200'] += len(events[ak.flatten(events.metpuppi_pt)>200])
 
         met = events.metpuppi_pt
+	fatjet_pt = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_pt
+	fatjet_eta = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_eta
+	fatjet_phi = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_phi
+	fatjet_mass = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_mass
+	fatjet_msoftdrop = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_msoftdrop
+	fatjet_tau1 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau1
+	fatjet_tau2 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau2
+	fatjet_tau3 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau3
+	fatjet_tau4 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau4
+	nfatjet = events.fatjet_size
 
         output["met"].fill(
             dataset=dataset,
             pt=ak.flatten(met, axis=1),
+        )
+	output["nfatjet"].fill(
+            dataset=dataset,
+            multiplicity=nfatjet,
+        )
+	output["fatjet_pt"].fill(
+            dataset=dataset,
+            pt=fatjet_pt[:,0:1],
+        )
+	output["fatjet_eta"].fill(
+            dataset=dataset,
+            eta=fatjet_eta[:,0:1],
+        )
+	output["fatjet_phi"].fill(
+            dataset=dataset,
+            phi=fatjet_phi[:,0:1],
+        )
+	output["fatjet_mass"].fill(
+            dataset=dataset,
+            mass=fatjet_mass[:,0:1],
+        )
+	output["fatjet_msoftdrop"].fill(
+            dataset=dataset,
+            mass=fatjet_msoftdrop[:,0:1],
+        )
+	output["fatjet_tau1"].fill(
+            dataset=dataset,
+            tau=fatjet_tau1[:,0:1],
+        )
+	output["fatjet_tau2"].fill(
+            dataset=dataset,
+            tau=fatjet_tau2[:,0:1],
+        )
+	output["fatjet_tau3"].fill(
+            dataset=dataset,
+            tau=fatjet_tau3[:,0:1],
+        )
+	output["fatjet_tau4"].fill(
+            dataset=dataset,
+            tau=fatjet_tau4[:,0:1],
         )
 
         return output
@@ -179,7 +279,13 @@ if __name__ == '__main__':
         tstart = time.time()
 
         output_flat_remote = processor.run_uproot_job(
-            {'Znunu': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples']},
+            {
+                'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
+                'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
+                'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
+                'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
+                'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
+            },
             treename='myana/mytree',
             processor_instance = FlatProcessor(),
             executor = exe,
@@ -191,6 +297,12 @@ if __name__ == '__main__':
 
         print ("Done.\n")
         print ("Running on flat tuples from grid: %.2f"%elapsed)
+
+	import matplotlib.pyplot as plt
+        import mplhep as hep
+        plt.style.use(hep.style.CMS)
+
+	#impliment makePlot once I make sure that everything else is working appropriately
 
 
     if args.run_flat:
@@ -209,5 +321,10 @@ if __name__ == '__main__':
         elapsed = time.time() - tstart
 
         print ("Running on flat tuples from nfs: %.2f"%elapsed)
+	
+	import matplotlib.pyplot as plt
+        import mplhep as hep
+        plt.style.use(hep.style.CMS)
 
+        #impliment makePlot once I make sure that everything else is working appropriately
     #print(output)

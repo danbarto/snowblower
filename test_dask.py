@@ -28,7 +28,7 @@ if __name__ == '__main__':
         import coffea
         import awkward
         #import sklearn
-        import onnxruntime
+        #import onnxruntime
         #from Tools.cutflow import Cutflow
         return x**2
 
