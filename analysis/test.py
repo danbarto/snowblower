@@ -123,60 +123,61 @@ class FlatProcessor(processor.ProcessorABC):
         output['cutflow'][dataset]['met>200'] += len(events[ak.flatten(events.metpuppi_pt)>200])
 
         met = events.metpuppi_pt
-	fatjet_pt = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_pt
-	fatjet_eta = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_eta
-	fatjet_phi = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_phi
-	fatjet_mass = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_mass
-	fatjet_msoftdrop = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_msoftdrop
-	fatjet_tau1 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau1
-	fatjet_tau2 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau2
-	fatjet_tau3 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau3
-	fatjet_tau4 = events[ak.argsort(events.fatjet_pt, ascending=False)].fatjet_tau4
-	nfatjet = events.fatjet_size
+        fatjet_events = events[ak.num(events.fatjet_pt) > 0]
+        fatjet_pt = fatjet_events.fatjet_pt[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_eta = fatjet_events.fatjet_eta[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_phi = fatjet_events.fatjet_phi[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_mass = fatjet_events.fatjet_mass[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_msoftdrop = fatjet_events.fatjet_msoftdrop[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_tau1 = fatjet_events.fatjet_tau1[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_tau2 = fatjet_events.fatjet_tau2[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_tau3 = fatjet_events.fatjet_tau3[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        fatjet_tau4 = fatjet_events.fatjet_tau4[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
+        nfatjet = events.fatjet_size
 
         output["met"].fill(
             dataset=dataset,
             pt=ak.flatten(met, axis=1),
         )
-	output["nfatjet"].fill(
-            dataset=dataset,
-            multiplicity=nfatjet,
+        output["nfatjet"].fill(
+	    dataset=dataset,
+	    multiplicity=nfatjet,
         )
-	output["fatjet_pt"].fill(
+        output["fatjet_pt"].fill(
             dataset=dataset,
-            pt=fatjet_pt[:,0:1],
+            pt=ak.flatten(fatjet_pt[:,0:1], axis=1),
         )
-	output["fatjet_eta"].fill(
+        output["fatjet_eta"].fill(
             dataset=dataset,
-            eta=fatjet_eta[:,0:1],
+            eta=ak.flatten(fatjet_eta[:,0:1], axis=1),
         )
-	output["fatjet_phi"].fill(
+        output["fatjet_phi"].fill(
             dataset=dataset,
-            phi=fatjet_phi[:,0:1],
+            phi=ak.flatten(fatjet_phi[:,0:1], axis=1),
         )
-	output["fatjet_mass"].fill(
+        output["fatjet_mass"].fill(
             dataset=dataset,
-            mass=fatjet_mass[:,0:1],
+            mass=ak.flatten(fatjet_mass[:,0:1], axis=1),
         )
-	output["fatjet_msoftdrop"].fill(
+        #output["fatjet_msoftdrop"].fill(
+        #    dataset=dataset,
+        #    mass=ak.flatten(fatjet_msoftdrop[:,0:1], axis=1),
+        #)
+        output["fatjet_tau1"].fill(
             dataset=dataset,
-            mass=fatjet_msoftdrop[:,0:1],
+            tau=ak.flatten(fatjet_tau1[:,0:1], axis=1),
         )
-	output["fatjet_tau1"].fill(
+        output["fatjet_tau2"].fill(
             dataset=dataset,
-            tau=fatjet_tau1[:,0:1],
+            tau=ak.flatten(fatjet_tau2[:,0:1], axis=1),
         )
-	output["fatjet_tau2"].fill(
+        output["fatjet_tau3"].fill(
             dataset=dataset,
-            tau=fatjet_tau2[:,0:1],
+            tau=ak.flatten(fatjet_tau3[:,0:1], axis=1),
         )
-	output["fatjet_tau3"].fill(
+        output["fatjet_tau4"].fill(
             dataset=dataset,
-            tau=fatjet_tau3[:,0:1],
-        )
-	output["fatjet_tau4"].fill(
-            dataset=dataset,
-            tau=fatjet_tau4[:,0:1],
+            tau=ak.flatten(fatjet_tau4[:,0:1], axis=1),
         )
 
         return output
@@ -298,7 +299,7 @@ if __name__ == '__main__':
         print ("Done.\n")
         print ("Running on flat tuples from grid: %.2f"%elapsed)
 
-	import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
         import mplhep as hep
         plt.style.use(hep.style.CMS)
 
@@ -322,7 +323,7 @@ if __name__ == '__main__':
 
         print ("Running on flat tuples from nfs: %.2f"%elapsed)
 	
-	import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt
         import mplhep as hep
         plt.style.use(hep.style.CMS)
 
