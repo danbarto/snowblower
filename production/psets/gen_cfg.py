@@ -24,7 +24,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10),
+    input = cms.untracked.int32(100),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -78,7 +78,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
         filterName = cms.untracked.string('')
     ),
     eventAutoFlushCompressedSize = cms.untracked.int32(20971520),
-    fileName = cms.untracked.string('file:gen.root'),
+    fileName = cms.untracked.string('file:output_gen.root'),
     outputCommands = process.RAWSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -104,11 +104,8 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
     PythiaParameters = cms.PSet(
         parameterSets = cms.vstring(
             'pythia8CommonSettings', 
-            'pythia8CP5Settings', 
-            'pythia8aMCatNLOSettings', 
-            'processParameters'
+            'pythia8CP5Settings'
         ),
-        processParameters = cms.vstring('TimeShower:nPartonsInBorn = 0'),
         pythia8CP5Settings = cms.vstring(
             'Tune:pp 14', 
             'Tune:ee 7', 
@@ -142,20 +139,6 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
             'ParticleDecays:limitTau0 = on', 
             'ParticleDecays:tau0Max = 10', 
             'ParticleDecays:allowPhotonRadiation = on'
-        ),
-        pythia8aMCatNLOSettings = cms.vstring(
-            'SpaceShower:pTmaxMatch = 1', 
-            'SpaceShower:pTmaxFudge = 1', 
-            'SpaceShower:MEcorrections = off', 
-            'TimeShower:pTmaxMatch = 1', 
-            'TimeShower:pTmaxFudge = 1', 
-            'TimeShower:MEcorrections = off', 
-            'TimeShower:globalRecoil = on', 
-            'TimeShower:limitPTmaxGlobal = on', 
-            'TimeShower:nMaxGlobalRecoil = 1', 
-            'TimeShower:globalRecoilMode = 2', 
-            'TimeShower:nMaxGlobalBranch = 1', 
-            'TimeShower:weightGluonToQuark = 1'
         )
     ),
     comEnergy = cms.double(14000.0),
@@ -167,8 +150,10 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
 
 
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
-    args = cms.vstring('/home/users/dspitzba/UPSG/genproductions/bin/MadGraph5_aMCatNLO/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'),
-    nEvents = cms.untracked.uint32(10),
+    #args = cms.vstring('/home/users/dspitzba/UPSG/genproductions/bin/MadGraph5_aMCatNLO/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'),
+    #args = cms.vstring('/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_750_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'),
+    args = cms.vstring('/home/users/dspitzba/snowblower/genproductions/bin/MadGraph5_aMCatNLO/2HDMa_bb_sinp_0p35_tanb_1p0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'),
+    nEvents = cms.untracked.uint32(100),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),
     scriptName = cms.FileInPath('GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh')
