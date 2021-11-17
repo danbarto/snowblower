@@ -173,14 +173,20 @@ echo
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # copy output to eos
 
+export REP="/store"
+OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
+
+echo "Final output path for xrootd:"
+echo ${OUTPUTDIR}
+
 # we need to copy ${OUTPUTNAME} and ${NTUPLE}
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 COPY_SRC="file://`pwd`/${NTUPLE}.root"
-COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${NTUPLE}_${IFILE}.root"
+COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${NTUPLE}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

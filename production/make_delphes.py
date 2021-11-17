@@ -17,14 +17,15 @@ def submit():
 
     requests = {
         #'HbbTest': '/hadoop/cms/store/user/dspitzba/UPSG/gridpacks/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        'HbbMET_1500_750_1': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_750_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'HbbMET_1500_750_1': '/hadoop/cms/store/user/ewallace/gridpacks/bbDM_2HDMa_MH3_1500_MH4_750_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        'HbbMET_1500_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
     }
 
     total_summary = {}
 
     extra_requirements = "true"
 
-    tag = "v4"
+    tag = "v7"
     #events_per_point = 500000 # produced 500k events before
     #events_per_job = 2000 # up to 2000 works
     events_per_point = 50
