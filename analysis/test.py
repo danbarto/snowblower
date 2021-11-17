@@ -15,6 +15,8 @@ ak.behavior.update(candidate.behavior)
 
 from functools import partial
 
+from plots.helpers import makePlot2
+
 class DelphesProcessor(processor.ProcessorABC):
     def __init__(self):
         self._accumulator = processor.dict_accumulator({
@@ -54,52 +56,52 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("pt", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
-	    "fatjet_pt": hist.Hist(
+             "lead_fatjet_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("pt", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
-	    "fatjet_eta": hist.Hist(
+            "lead_fatjet_eta": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("eta", "$\eta$", 33, -4, 4),
             ),
-	    "fatjet_phi": hist.Hist(
+            "lead_fatjet_phi": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("phi", "$\phi$", 3, -4, 4),
+                hist.Bin("phi", "$\phi$", 33, -4, 4),
             ),
-	    "fatjet_mass": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
-            ),
-	    "fatjet_sdmass": hist.Hist(
+            "lead_fatjet_mass": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
-	    "fatjet_tau1": hist.Hist(
+            "lead_fatjet_sdmass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+            "lead_fatjet_tau1": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_1$", 10, 0, 1),
             ),
-	    "fatjet_tau2": hist.Hist(
+            "lead_fatjet_tau2": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_2$", 10, 0, 1),
             ),
-	    "fatjet_tau3": hist.Hist(
+            "lead_fatjet_tau3": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_3$", 10, 0, 1),
             ),
-	    "fatjet_tau4": hist.Hist(
+            "lead_fatjet_tau4": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_4$", 10, 0, 1),
             ),
-	    "nfatjet": hist.Hist(
+            "nfatjet": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
@@ -140,42 +142,42 @@ class FlatProcessor(processor.ProcessorABC):
             pt=ak.flatten(met, axis=1),
         )
         output["nfatjet"].fill(
-	    dataset=dataset,
-	    multiplicity=nfatjet,
+            dataset=dataset,
+            multiplicity=nfatjet,
         )
-        output["fatjet_pt"].fill(
+        output["lead_fatjet_pt"].fill(
             dataset=dataset,
             pt=ak.flatten(fatjet_pt[:,0:1], axis=1),
         )
-        output["fatjet_eta"].fill(
+        output["lead_fatjet_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(fatjet_eta[:,0:1], axis=1),
         )
-        output["fatjet_phi"].fill(
+        output["lead_fatjet_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(fatjet_phi[:,0:1], axis=1),
         )
-        output["fatjet_mass"].fill(
+        output["lead_fatjet_mass"].fill(
             dataset=dataset,
             mass=ak.flatten(fatjet_mass[:,0:1], axis=1),
         )
-        #output["fatjet_msoftdrop"].fill(
-        #    dataset=dataset,
-        #    mass=ak.flatten(fatjet_msoftdrop[:,0:1], axis=1),
-        #)
-        output["fatjet_tau1"].fill(
+        output["lead_fatjet_sdmass"].fill(
+            dataset=dataset,
+            mass=ak.flatten(fatjet_msoftdrop[:,0:1], axis=1),
+        )
+        output["lead_fatjet_tau1"].fill(
             dataset=dataset,
             tau=ak.flatten(fatjet_tau1[:,0:1], axis=1),
         )
-        output["fatjet_tau2"].fill(
+        output["lead_fatjet_tau2"].fill(
             dataset=dataset,
             tau=ak.flatten(fatjet_tau2[:,0:1], axis=1),
         )
-        output["fatjet_tau3"].fill(
+        output["lead_fatjet_tau3"].fill(
             dataset=dataset,
             tau=ak.flatten(fatjet_tau3[:,0:1], axis=1),
         )
-        output["fatjet_tau4"].fill(
+        output["lead_fatjet_tau4"].fill(
             dataset=dataset,
             tau=ak.flatten(fatjet_tau4[:,0:1], axis=1),
         )
@@ -304,7 +306,7 @@ if __name__ == '__main__':
         import mplhep as hep
         plt.style.use(hep.style.CMS)
 
-	#impliment makePlot once I make sure that everything else is working appropriately
+    #impliment makePlot once I make sure that everything else is working appropriately
 
 
     if args.run_flat:
@@ -323,10 +325,53 @@ if __name__ == '__main__':
         elapsed = time.time() - tstart
 
         print ("Running on flat tuples from nfs: %.2f"%elapsed)
-	
+        
         import matplotlib.pyplot as plt
         import mplhep as hep
         plt.style.use(hep.style.CMS)
+                
+        #define bins
+        
+        N_bins = hist.Bin('multiplicity', r'$N$', 6, -0.5, 5.5)
+        mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 20, 0, 200)
+        pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 30, 0, 300)
+        fatjet_pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 30, 200, 500)
+        eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
+        phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
+        tau_bins = hist.Bin("tau", "$\tau$", 10, 0, 1)
+                
+        labels ={
+            ('Znunu',): r'$Z\nu\nu$'
+        }
+        
+        colors ={
+            ('Znunu',): '#FFCA3A'
+        }
+       
+        makePlot2(output_flat, 'met', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_pt', 'pt', fatjet_pt_bins, r'$p_{T}\ (GeV)$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_tau1', 'tau', tau_bins, r'$\tau_1$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_tau2', 'tau', tau_bins, r'$\tau_2$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_tau3', 'tau', tau_bins, r'$\tau_3$', labels, colors)
+        makePlot2(output_flat, 'lead_fatjet_tau4', 'tau', tau_bins, r'$\tau_4$', labels, colors)
+        makePlot2(output_flat, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors)
 
-        #impliment makePlot once I make sure that everything else is working appropriately
+        #try one makePlot call for now
+        
+        #my_colors = {
+        #    'Znunu': '#FFCA3A'
+        #}
+        
+        #my_labels = {
+        #    'Znunu': r'$Z\nu\nu$'
+        #}
+        
+        #makePlot(output_flat, "met", 'pt',
+        #    bins=pt_bins, log=False, normalize=True, axis_label=r'$p_{T}^{miss}$', lumi=1,
+        #    save='/home/users/ewallace/public_html/HbbMET/delphes_flat_MET_background',
+        #)
     #print(output)
