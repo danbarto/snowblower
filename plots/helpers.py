@@ -274,14 +274,13 @@ def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False,
         print ("Figure saved in:", save)
 
 
-def makePlot2(output, histo, axis, bins, xlabel, labels, colors):
-    
-        tmp1 = output[histo].copy()
-        tmp1 = tmp1.rebin(axis, bins)
-        
+def makePlot2(output, meta_output, histo, axis, bins, xlabel, labels, colors, remote=False):
         histos = {}
         
-        keys = output[histo].values().keys()
+        keys = tmp1.values().keys()
+        
+        tmp1 = scale_and_merge(output[histo], meta_output, keys, lumi=0.001)
+        tmp1 = tmp1.rebin(axis, bins)
         
         for sample in keys:
             h1 = Hist1D.from_bincounts(
@@ -289,20 +288,25 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors):
                 (tmp1.axis(axis).edges(overflow = 'over')),
                 #errors = np.sqrt(tmp1.sum('pt', 'dataset', overflow = 'all').values(sumw2=True, overflow = 'all')[()][1].T),
             )
-            
             histos[sample] = h1
         
+
+        if remote == False:
+            edge = ('Znunu',)
+        elif remote == True:
+            edge = ('ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',)
+           
         fig, (ax) = plt.subplots(figsize=(10,10))
         hep.cms.label(
             'Preliminary',
-            data=False,
             loc=0,
             ax=ax,
+            rlabel = '',
         )
-        
+ 
         hep.histplot(
             [histos[sample].counts for sample in keys],
-            histos[('Znunu',)].edges,
+            histos[edge].edges,
             #w2=[(hists[x].errors)**2 for x in keys ],
             histtype="fill",
             stack=True,
@@ -314,8 +318,11 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(r'Events')
         ax.legend()
-        
-        fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_'+histo+'_background.png')
+
+        if remote == False:
+            fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_'+histo+'_background.png')
+        if remote == True:
+            fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_remote_'+histo+'_background.png')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -362,7 +369,7 @@ def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over'
     ax.fill_between(x=bins, y1=np.r_[down, down[-1]], y2=np.r_[up, up[-1]], **opts)
 
 
-def scale_and_merge(histogram, samples, fileset, nano_mapping, lumi=60):
+def scale_and_merge(histogram, samples, fileset, nano_mapping, lumi=0.001):
     """
     Scale NanoAOD samples to a physical cross section.
     Merge NanoAOD samples into categories, e.g. several ttZ samples into one ttZ category.
@@ -376,8 +383,9 @@ def scale_and_merge(histogram, samples, fileset, nano_mapping, lumi=60):
     temp = histogram.copy()
 
     # scale according to cross sections    
-    #scales = {sample: lumi*1000*samples[sample]['xsec']/samples[sample]['sumWeight'] for sample in samples if sample in fileset}
-    #temp.scale(scales, axis='dataset')
+    scales = {sample: lumi*1000*samples[sample]['xsec']/samples[sample]['sumWeight'] for sample in samples if sample in fileset}
+    print(scales)
+    temp.scale(scales, axis='dataset')
 
     
     # merge according to categories:
@@ -386,7 +394,7 @@ def scale_and_merge(histogram, samples, fileset, nano_mapping, lumi=60):
     #    'all samples': ['sample 1', 'sample 2'],
     #    'just sample 1': ['sample 1'],
     #}
-    temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), nano_mapping) # this is not in place
+    #temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), nano_mapping) # this is not in place
                 
     return temp
 
