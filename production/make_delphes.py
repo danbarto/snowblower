@@ -16,7 +16,7 @@ import os
 def submit():
 
     requests = {
-        '2HDMa_bb_MH4_150_test': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        '2HDMa_bb_1500_150_10_test': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
         #'2HDMa_bb_MH4_250': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
 	#'2HDMa_bb_MH4_350': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
 	#'2HDMa_bb_MH4_500': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',

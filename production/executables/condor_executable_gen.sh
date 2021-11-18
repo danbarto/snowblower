@@ -180,11 +180,18 @@ if [ ! -e "$OUTPUTNAME.root" ]; then
     exit 1
 fi
 
+export REP="/store"
+OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
+
+echo "Final output path for xrootd:"
+echo ${OUTPUTDIR}
+
 echo "time before copy: $(date +%s)"
 chirp ChirpMetisStatus "before_copy"
 
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-COPY_DEST="gsiftp://gftp.t2.ucsd.edu${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+
 stageout $COPY_SRC $COPY_DEST
 
 echo -e "\n--- end copying output ---\n" #                      <----- section division
