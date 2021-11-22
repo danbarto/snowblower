@@ -102,17 +102,20 @@ def copy_and_merge(name, target, files, n_chunks):
     chunks = chunk(files, n_chunks)
     for i, files in enumerate(chunks):
         to_merge = []
-        for f in files:
-            f_name = f.split('/')[-1]
-            success = xrdcp(f, target+'/'+f_name)
+        if not os.path.isfile(target+'/'+name+'_%s.root'%i):
+            for f in files:
+                f_name = f.split('/')[-1]
+                success = xrdcp(f, target+'/'+f_name)
+                if success:
+                    print ("Copy successful.")
+                    to_merge.append(target + f_name)
+            print ("Now hadding.")
+            success = hadd(target+'/'+name+'_%s.root'%i, to_merge)
             if success:
-                print ("Copy successful.")
-                to_merge.append(target + f_name)
-        print ("Now hadding.")
-        success = hadd(target+'/'+name+'_%s.root'%i, to_merge)
-        if success:
-            for f in to_merge:
-                os.remove(f)
+                for f in to_merge:
+                    os.remove(f)
+        else:
+            print ("Output for job %s already exists, skipping."%i)
     return True
 
 
@@ -190,10 +193,11 @@ if __name__ == '__main__':
                     yaml.dump(database, f, Dumper=Dumper)
 
 
-    test_merge = False
+    test_merge = True
     if test_merge:
         # We can hadd ~4 delphes samples, and ~20 ntuple files
-        sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
+        #sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
+        sample_name = 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'
         copy_and_merge(
             sample_name,
             '/nfs-7/userdata/dspitzba/%s/'%sample_name,
