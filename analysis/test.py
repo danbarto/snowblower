@@ -15,6 +15,9 @@ ak.behavior.update(candidate.behavior)
 
 from functools import partial
 
+from tools.helpers import get_four_vec_fromPtEtaPhiM
+
+
 class DelphesProcessor(processor.ProcessorABC):
     def __init__(self):
         self._accumulator = processor.dict_accumulator({
@@ -54,6 +57,11 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("pt", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
+            "nElectron": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$N", 5, -0.5, 4.5),
+            ),
             'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
                 partial(processor.defaultdict_accumulator, int)
@@ -74,9 +82,34 @@ class FlatProcessor(processor.ProcessorABC):
 
         met = events.metpuppi_pt
 
+
+        electron = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.elec_pt,
+            eta = events.elec_eta,
+            phi = events.elec_phi,
+            M = events.elec_mass,
+            copy = False,
+        )
+        electron['id'] = events.elec_idpass  # > 0 should be loose
+        electron['iso'] = events.elec_isopass
+        electron['charge'] = events.elec_charge
+
+        ele_l = electron[((electron['id']>0)&(electron['iso']>0))]
+
+
+        baseline = ((ak.num(ele_l)==0) & (events.metpuppi_pt>100))
+
+        met_sel = met[baseline]
+
         output["met"].fill(
             dataset=dataset,
-            pt=ak.flatten(met, axis=1),
+            pt=ak.flatten(met_sel, axis=1),
+        )
+
+        output["nElectron"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(ele_l),
         )
 
         return output
