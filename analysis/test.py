@@ -106,6 +106,11 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
             ),
+            "ht": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$H_{T}$ [GeV]", 50, 0, 2500),
+            ),
             'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
                 partial(processor.defaultdict_accumulator, int)
@@ -120,11 +125,75 @@ class FlatProcessor(processor.ProcessorABC):
         output = self.accumulator.identity()
 
         dataset = events.metadata['dataset']
-               
-        output['cutflow'][dataset]['total'] += len(ak.flatten(events.metpuppi_pt))
-        output['cutflow'][dataset]['met>200'] += len(events[ak.flatten(events.metpuppi_pt)>200])
+        
+        #define objects
+        
+        #electrons
+                
+        electron = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.elec_pt,
+            eta = events.elec_eta,
+            phi = events.elec_phi,
+            M = events.elec_mass,
+            copy = False,
+        )
+        electron['id'] = events.elec_idpass  # > 0 should be loose
+        electron['iso'] = events.elec_isopass
+        electron['charge'] = events.elec_charge
 
-        met = events.metpuppi_pt
+        ele_l = electron[((electron['id']>0)&(electron['iso']>0)&(electron.pt>10)&(np.abs(electron.eta)<3))]
+        
+        #muons
+        
+        muon = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.muon_pt,
+            eta = events.muon_eta,
+            phi = events.muon_phi,
+            M = events.muon_mass,
+            copy = False,
+        )
+        muon['id'] = events.muon_idpass  # > 0 should be loose
+        muon['iso'] = events.muon_isopass
+        muon['charge'] = events.muon_charge
+
+        muon_l = muon[((muon['id']>0)&(muon['iso']>0)&(muon.pt>4)&(np.abs(muon.eta)<2.8))]
+        
+        #taus
+        
+        tau = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.tau_pt,
+            eta = events.tau_eta,
+            phi = events.tau_phi,
+            M = events.tau_mass,
+            copy = False,
+        )
+        tau['iso'] = events.tau_isopass   # > 0 should be loose
+        tau['charge'] = events.tau_charge
+
+        tau_l = tau[((tau['iso']>0)&(tau.pt>30)&(np.abs(tau.eta)<3))]
+        
+        #photons
+        
+        gamma = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.gamma_pt,
+            eta = events.gamma_eta,
+            phi = events.gamma_phi,
+            M = events.gamma_mass,
+            copy = False,
+        )
+        gamma['id'] = events.gamma_idpass  # > 0 should be loose
+        gamma['iso'] = events.gamma_isopass
+        gamma['charge'] = events.gamma_charge
+
+        gamma_l = gamma[((gamma['id']>0)&(gamma['iso']>0)&(gamma.pt>20)&(np.abs(gamma.eta)<3))]
+        
+        #fatjets
+        
+        ht = ak.sum(events.jetpuppi_pt, axis=1)
         fatjet_events = events[ak.num(events.fatjet_pt) > 0]
         fatjet_pt = fatjet_events.fatjet_pt[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
         fatjet_eta = fatjet_events.fatjet_eta[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
@@ -136,50 +205,75 @@ class FlatProcessor(processor.ProcessorABC):
         fatjet_tau3 = fatjet_events.fatjet_tau3[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
         fatjet_tau4 = fatjet_events.fatjet_tau4[ak.argsort(fatjet_events.fatjet_pt, ascending=False)]
         nfatjet = events.fatjet_size
+        
+        #MET
+        
+        met = events.metpuppi_pt
+
+        
+        #selections
+        met_sel = (met>200)
+        ele_sel = ((ak.num(ele_l)==0) & met_sel)
+        mu_sel = ((ak.num(muon_l)==0) & ele_sel)
+        tau_sel = ((ak.num(tau_l)==0) & mu_sel)
+        baseline = ((ak.num(gamma_l)==0) & tau_sel)
+
+        #output
+        output['cutflow'][dataset]['total'] += len(ak.flatten(met))
+        output['cutflow'][dataset]['met>200'] += len(ak.flatten(met[met_sel]))
+        output['cutflow'][dataset]['n_ele==0'] += len(ak.flatten(met[ele_sel]))
+        output['cutflow'][dataset]['n_mu==0'] += len(ak.flatten(met[mu_sel]))
+        output['cutflow'][dataset]['n_tau==0'] += len(ak.flatten(met[tau_sel]))
+        output['cutflow'][dataset]['n_gamma==0'] += len(ak.flatten(met[baseline]))
+
 
         output["met"].fill(
             dataset=dataset,
-            pt=ak.flatten(met, axis=1),
+            pt=ak.flatten(met[baseline], axis=1),
+        )
+        output["ht"].fill(
+            dataset=dataset,
+            pt = ht[baseline],
         )
         output["nfatjet"].fill(
             dataset=dataset,
-            multiplicity=nfatjet,
+            multiplicity=nfatjet[baseline],
         )
         output["lead_fatjet_pt"].fill(
             dataset=dataset,
-            pt=ak.flatten(fatjet_pt[:,0:1], axis=1),
+            pt=ak.flatten(fatjet_pt[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_eta"].fill(
             dataset=dataset,
-            eta=ak.flatten(fatjet_eta[:,0:1], axis=1),
+            eta=ak.flatten(fatjet_eta[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_phi"].fill(
             dataset=dataset,
-            phi=ak.flatten(fatjet_phi[:,0:1], axis=1),
+            phi=ak.flatten(fatjet_phi[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_mass"].fill(
             dataset=dataset,
-            mass=ak.flatten(fatjet_mass[:,0:1], axis=1),
+            mass=ak.flatten(fatjet_mass[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_sdmass"].fill(
             dataset=dataset,
-            mass=ak.flatten(fatjet_msoftdrop[:,0:1], axis=1),
+            mass=ak.flatten(fatjet_msoftdrop[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_tau1"].fill(
             dataset=dataset,
-            tau=ak.flatten(fatjet_tau1[:,0:1], axis=1),
+            tau=ak.flatten(fatjet_tau1[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_tau2"].fill(
             dataset=dataset,
-            tau=ak.flatten(fatjet_tau2[:,0:1], axis=1),
+            tau=ak.flatten(fatjet_tau2[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_tau3"].fill(
             dataset=dataset,
-            tau=ak.flatten(fatjet_tau3[:,0:1], axis=1),
+            tau=ak.flatten(fatjet_tau3[baseline][:,0:1], axis=1),
         )
         output["lead_fatjet_tau4"].fill(
             dataset=dataset,
-            tau=ak.flatten(fatjet_tau4[:,0:1], axis=1),
+            tau=ak.flatten(fatjet_tau4[baseline][:,0:1], axis=1),
         )
 
         return output
@@ -201,7 +295,7 @@ class meta_processor(processor.ProcessorABC):
 
         dataset = events.metadata['dataset']
 
-        sumw = sum(events['genweight'])
+        sumw = np.sum(events['genweight'])
         #sumw2 = sum(events['genEventSumw2'])
         #nevents = sum(events['genEventCount'])
 
@@ -213,7 +307,7 @@ class meta_processor(processor.ProcessorABC):
         output[dataset]['sumWeight'] += sumw
         #output[dataset]['sumWeight2'] += sumw2
         #output[dataset]['nevents'] += nevents
-        output[dataset]['nChunk'] += 1
+        #output[dataset]['nChunk'] += 1
         
         return output
 
@@ -238,13 +332,6 @@ if __name__ == '__main__':
 
     with open('../data/samples.yaml', 'r') as f:
         samples = yaml.load(f, Loader = Loader)
-
-    meta_accumulator = {}
-    for sample in samples:
-        if sample not in meta_accumulator:
-            meta_accumulator.update({sample: processor.defaultdict_accumulator(int)})
-        for f in samples[sample]:
-            meta_accumulator.update({f: processor.defaultdict_accumulator(int)})
 
     import time
 
@@ -290,16 +377,28 @@ if __name__ == '__main__':
 
 
         tstart = time.time()
+        
+        fileset = {
+            #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
+            '2HDMa_bb_1500_150_10': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
+            '2HDMa_bb_1500_250_10': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500']['ntuples'],
+            '2HDMa_bb_1500_350_10': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500']['ntuples'],
+            '2HDMa_bb_1500_500_10': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500']['ntuples'],
+            '2HDMa_bb_1500_750_10': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
+        }
 
+        meta_accumulator = {}
+        for sample in fileset:
+            if sample not in meta_accumulator:
+                meta_accumulator.update({sample: processor.defaultdict_accumulator(int)})
+            
         meta_output_flat_remote = processor.run_uproot_job(
-            {
-                #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'],
-                'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
-            },
+            fileset,
             treename='myana/mytree',
             processor_instance = meta_processor(accumulator=meta_accumulator),
             executor = exe,
@@ -307,16 +406,14 @@ if __name__ == '__main__':
             chunksize = 1000000,
             maxchunks = None,
         )
+        
+        elapsed = time.time() - tstart
+
+        print ("Done with meta_processor.\n")
+        print ("Running on flat tuples from grid: %.2f"%elapsed)
 
         output_flat_remote = processor.run_uproot_job(
-            {
-                #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'],
-                'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
-                #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
-            },
+            fileset,
             treename='myana/mytree',
             processor_instance = FlatProcessor(),
             executor = exe,
@@ -331,19 +428,8 @@ if __name__ == '__main__':
 
         meta = {}
 
-        for sample in samples:
-            meta[sample] = meta_output[sample]
-            good_files = []
-            skipped_files = []
-            for rootfile in fileset[sample]:
-                if meta_output[rootfile]:
-                    good_files.append(rootfile)
-                else:
-                    skipped_files.append(rootfile)
-            meta[sample]['good_files'] = good_files
-            meta[sample]['n_good'] = len(good_files)
-            meta[sample]['bad_files'] = skipped_files
-            meta[sample]['n_bad'] = len(skipped_files)
+        for sample in fileset:
+            meta[sample] = meta_output_flat_remote[sample]
             meta[sample]['xsec'] = samples[sample]['xsec']
 
         import matplotlib.pyplot as plt
@@ -353,6 +439,7 @@ if __name__ == '__main__':
         N_bins = hist.Bin('multiplicity', r'$N$', 6, -0.5, 5.5)
         mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 30, 0, 300)
         pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 50, 0, 500)
+        ht_bins = hist.Bin('pt', r'$H_{T}\ (GeV)$', 50, 0, 2500)
         fatjet_pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 50, 200, 700)
         eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
         phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
@@ -364,7 +451,12 @@ if __name__ == '__main__':
             ('ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 600\ to\ 800)$',
             ('ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 800\ to\ 1200)$',
             ('ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 1200\ to\ 2500)$',
-            ('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): r'$t\bar{t}$',
+            #('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): r'$t\bar{t}$',
+            ('2HDMa_bb_1500_150_10',): '2HDMa_bb_1500_150_10',
+            ('2HDMa_bb_1500_250_10',): '2HDMa_bb_1500_250_10',
+            ('2HDMa_bb_1500_350_10',): '2HDMa_bb_1500_350_10',
+            ('2HDMa_bb_1500_500_10',): '2HDMa_bb_1500_500_10',
+            ('2HDMa_bb_1500_750_10',): '2HDMa_bb_1500_750_10',
         }
 
         colors ={
@@ -373,20 +465,24 @@ if __name__ == '__main__':
             ('ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',): '#442288',
             ('ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',): '#6CA2EA',
             ('ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',): '#B5D33D',
-            ('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): '#355C7D',
+            #('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): '#355C7D',
         }
-
-        makePlot2(output_flat_remote, meta, 'met', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_pt', 'pt', fatjet_pt_bins, r'$p_{T}\ (GeV)$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_tau1', 'tau', tau_bins, r'$\tau_1$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_tau2', 'tau', tau_bins, r'$\tau_2$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_tau3', 'tau', tau_bins, r'$\tau_3$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'lead_fatjet_tau4', 'tau', tau_bins, r'$\tau_4$', labels, colors, remote=True)
-        makePlot2(output_flat_remote, meta, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, remote=True)
+        for key in output_flat_remote.keys():
+            if type(output_flat_remote[key]) is not type(output_flat_remote['cutflow']):
+                output_flat_remote[key] = scale_histos(output_flat_remote[key], meta, fileset, lumi=3000)
+            
+        makePlot2(output_flat_remote, 'met', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors, remote=True, signals=[])
+        makePlot2(output_flat_remote, 'lead_fatjet_pt', 'pt', fatjet_pt_bins, r'$p_{T}\ (GeV)$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_tau1', 'tau', tau_bins, r'$\tau_1$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_tau2', 'tau', tau_bins, r'$\tau_2$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_tau3', 'tau', tau_bins, r'$\tau_3$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'lead_fatjet_tau4', 'tau', tau_bins, r'$\tau_4$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, remote=True)
+        makePlot2(output_flat_remote, 'ht', 'pt', ht_bins, r'$H_{T}$', labels, colors, remote=True)
 
 
     if args.run_flat:
@@ -439,19 +535,3 @@ if __name__ == '__main__':
         makePlot2(output_flat, 'lead_fatjet_tau3', 'tau', tau_bins, r'$\tau_3$', labels, colors)
         makePlot2(output_flat, 'lead_fatjet_tau4', 'tau', tau_bins, r'$\tau_4$', labels, colors)
         makePlot2(output_flat, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors)
-
-        #try one makePlot call for now
-        
-        #my_colors = {
-        #    'Znunu': '#FFCA3A'
-        #}
-        
-        #my_labels = {
-        #    'Znunu': r'$Z\nu\nu$'
-        #}
-        
-        #makePlot(output_flat, "met", 'pt',
-        #    bins=pt_bins, log=False, normalize=True, axis_label=r'$p_{T}^{miss}$', lumi=1,
-        #    save='/home/users/ewallace/public_html/HbbMET/delphes_flat_MET_background',
-        #)
-    #print(output)

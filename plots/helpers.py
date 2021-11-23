@@ -274,14 +274,14 @@ def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False,
         print ("Figure saved in:", save)
 
 
-def makePlot2(output, meta_output, histo, axis, bins, xlabel, labels, colors, remote=False):
+def makePlot2(output, histo, axis, bins, xlabel, labels, colors, remote=False, signals=[]):
         histos = {}
         
-        keys = tmp1.values().keys()
-        
-        tmp1 = scale_and_merge(output[histo], meta_output, keys, lumi=0.001)
+        tmp1 = output[histo].copy()
         tmp1 = tmp1.rebin(axis, bins)
         
+        keys = tmp1.values().keys()
+                
         for sample in keys:
             h1 = Hist1D.from_bincounts(
                 tmp1.values(overflow = 'over')[sample].T,
@@ -301,19 +301,32 @@ def makePlot2(output, meta_output, histo, axis, bins, xlabel, labels, colors, re
             'Preliminary',
             loc=0,
             ax=ax,
-            rlabel = '',
+            lumi = 3000,
+            rlabel = '14 TeV',
         )
- 
-        hep.histplot(
-            [histos[sample].counts for sample in keys],
-            histos[edge].edges,
-            #w2=[(hists[x].errors)**2 for x in keys ],
-            histtype="fill",
-            stack=True,
-            label=[labels[sample] for sample in keys],
-            color=[colors[sample] for sample in keys],
-            ax=ax
-        )
+        
+        for sample in keys:
+            if sample not in signals:
+                hep.histplot(
+                    histos[sample].counts,
+                    histos[edge].edges,
+                    #w2=[(hists[x].errors)**2 for x in keys ],
+                    histtype="fill",
+                    stack=True,
+                    label=labels[sample],
+                    color=colors[sample],
+                    ax=ax
+                )
+            if sample in signals:
+                hep.histplot(
+                    histos[sample].counts,
+                    histos[edge].edges,
+                    #w2=[(hists[x].errors)**2 for x in keys ],
+                    histtype="step",
+                    stack=True,
+                    label=labels[sample],
+                    ax=ax
+                )
         
         ax.set_xlabel(xlabel)
         ax.set_ylabel(r'Events')
@@ -369,15 +382,15 @@ def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over'
     ax.fill_between(x=bins, y1=np.r_[down, down[-1]], y2=np.r_[up, up[-1]], **opts)
 
 
-def scale_and_merge(histogram, samples, fileset, nano_mapping, lumi=0.001):
+def scale_histos(histogram, samples, fileset, lumi=3000):
     """
-    Scale NanoAOD samples to a physical cross section.
-    Merge NanoAOD samples into categories, e.g. several ttZ samples into one ttZ category.
+    Scale samples to a physical cross section.
+    Merge samples into categories, e.g. several ttZ samples into one ttZ category. Not yet implimented
     
     histogram -- coffea histogram
     samples -- samples dictionary that contains the x-sec and sumWeight
     fileset -- fileset dictionary used in the coffea processor
-    nano_mapping -- dictionary to map NanoAOD samples into categories
+    nano_mapping -- dictionary to map NanoAOD samples into categories. Not yet implimented
     lumi -- integrated luminosity in 1/fb
     """
     temp = histogram.copy()
