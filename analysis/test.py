@@ -16,6 +16,8 @@ ak.behavior.update(candidate.behavior)
 from functools import partial
 
 from plots.helpers import makePlot2
+from tools.helpers import get_four_vec_fromPtEtaPhiM
+
 
 class DelphesProcessor(processor.ProcessorABC):
     def __init__(self):
@@ -110,6 +112,11 @@ class FlatProcessor(processor.ProcessorABC):
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("pt", "$H_{T}$ [GeV]", 50, 0, 2500),
+            ),
+            "nElectron": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$N", 5, -0.5, 4.5),
             ),
             'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
@@ -273,8 +280,9 @@ class FlatProcessor(processor.ProcessorABC):
         )
         output["lead_fatjet_tau4"].fill(
             dataset=dataset,
-            tau=ak.flatten(fatjet_tau4[baseline][:,0:1], axis=1),
+            tau=ak.flatten(fatjet_tau4[baseline][:,0:1], axis=1)
         )
+
 
         return output
 

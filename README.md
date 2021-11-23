@@ -75,3 +75,14 @@ Pack the code with: `source packCode.sh`. Make sure you have a valid proxy and h
 Run `ipython -i start_cluster.py -- --scale 50` for 50 workers. Don't kill the ipython session or the cluster will also shutdown again.
 To test, run `ipython -i test_dask.py`.
 A coffea processor can be run in `analysis/` with `ipython -i test.py -- --run_flat_remote --dask`. This should take O(5mins) for 10-50 active workers.
+
+
+## Coffea developer mode
+
+```
+git clone https://github.com/CoffeaTeam/coffea
+cd coffea
+git remote add upstream git@github.com:danbarto/coffea.git
+pip install --editable .[dev]
+```
+
