@@ -274,7 +274,7 @@ def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False,
         print ("Figure saved in:", save)
 
 
-def makePlot2(output, histo, axis, bins, xlabel, labels, colors, remote=False, signals=[]):
+def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
         histos = {}
         
         tmp1 = output[histo].copy()
@@ -291,17 +291,14 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, remote=False, s
             histos[sample] = h1
         
 
-        if remote == False:
-            edge = ('Znunu',)
-        elif remote == True:
-            edge = ('ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',)
+        edge = list(keys)[0]
            
         fig, (ax) = plt.subplots(figsize=(10,10))
         hep.cms.label(
             'Preliminary',
             loc=0,
             ax=ax,
-            lumi = 3000,
+            #lumi = 3000,
             rlabel = '14 TeV',
         )
         
@@ -330,12 +327,10 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, remote=False, s
         
         ax.set_xlabel(xlabel)
         ax.set_ylabel(r'Events')
+        ax.set_yscale('log')
         ax.legend()
 
-        if remote == False:
-            fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_'+histo+'_background.png')
-        if remote == True:
-            fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_remote_'+histo+'_background.png')
+        fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_remote_'+histo+'_signal.png')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -397,7 +392,6 @@ def scale_histos(histogram, samples, fileset, lumi=3000):
 
     # scale according to cross sections    
     scales = {sample: lumi*1000*samples[sample]['xsec']/samples[sample]['sumWeight'] for sample in samples if sample in fileset}
-    print(scales)
     temp.scale(scales, axis='dataset')
 
     
