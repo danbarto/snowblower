@@ -149,3 +149,20 @@ def scale_four_vec(vec, pt=1, eta=1, phi=1, mass=1):
     vec4.__dict__.update(cand.__dict__)
     return vec4
 
+def match(first, second, deltaRCut=0.4):
+    drCut2 = deltaRCut**2
+    combs = ak.cartesian([first, second], nested=True)
+    return ak.any((delta_r2(combs['0'], combs['1'])<drCut2), axis=2)
+
+def delta_phi(first, second):
+    return (first.phi - second.phi + np.pi) % (2 * np.pi) - np.pi
+
+def delta_phi_alt(first, second):
+    # my version, seems to be faster (and unsigned)
+    return np.arccos(np.cos(first.phi - second.phi))
+
+def delta_r2(first, second):
+    return (first.eta - second.eta) ** 2 + delta_phi_alt(first, second) ** 2
+
+def delta_r(first, second):
+    return np.sqrt(delta_r2(first, second))
