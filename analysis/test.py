@@ -15,7 +15,7 @@ ak.behavior.update(candidate.behavior)
 
 from functools import partial
 
-from tools.helpers import get_four_vec_fromPtEtaPhiM
+from tools.helpers import get_four_vec_fromPtEtaPhiM, match
 
 
 class DelphesProcessor(processor.ProcessorABC):
@@ -98,6 +98,38 @@ class FlatProcessor(processor.ProcessorABC):
         ele_l = electron[((electron['id']>0)&(electron['iso']>0))]
 
 
+        # Need FatJets and GenParts
+        # FatJets start at pt>200 and go all the way to eta 3.x
+        # This should be fine?
+        # Objects are defined here: https://twiki.cern.ch/twiki/bin/view/CMS/DelphesInstructions
+        # Maybe restrict abs(eta) to 2.8 or 3 (whatever the tracker acceptance of PhaseII CMS is)
+        fatjet = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.fatjet_pt,
+            eta = events.fatjet_eta,
+            phi = events.fatjet_phi,
+            M = events.fatjet_msoftdrop,
+            copy = False,
+        )
+        #fatjet['tau1'] = events.fatjet_tau1
+
+        gen = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.genpart_pt,
+            eta = events.genpart_eta,
+            phi = events.genpart_phi,
+            M = events.genpart_mass,
+            copy = False,
+        )
+        gen['pdgId'] = events.genpart_pid
+        gen['status'] = events.genpart_status
+
+        higgs = gen[(gen.pdgId==25)][:,-1:]  # only keep the last copy. status codes seem messed up?
+
+        matched_jet = fatjet[match(fatjet, higgs, deltaRCut=0.8)]
+        n_matched_jet = ak.num(matched_jet)
+        # now do with that what you want
+
         baseline = ((ak.num(ele_l)==0) & (events.metpuppi_pt>100))
 
         met_sel = met[baseline]
@@ -153,7 +185,8 @@ if __name__ == '__main__':
 
 
     ev_flat = NanoEventsFactory.from_root(
-        '/nfs-7/userdata/dspitzba/ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU//ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU_1.root',
+        #'/nfs-7/userdata/dspitzba/ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU//ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU_1.root',
+        '/hadoop/cms/store/user/ewallace/ProjectMetis/2HDMa_bb_1500_750_10_HLLHC_GEN_v4/delphes/delphes_ntuple_99.root',
         treepath='myana/mytree',
         schemaclass=BaseSchema,
     ).events()
