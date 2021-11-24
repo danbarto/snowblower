@@ -134,7 +134,7 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
 
 
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
-    args = cms.vstring('/home/users/dspitzba/UPSG/genproductions/bin/MadGraph5_aMCatNLO/bbDM_2HDMa_MH3_600_MH4_10_Mchi_1_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'), 
+    args = cms.vstring('/home/users/ewallace/genproductions/bin/MadGraph5_aMCatNLO/bbDM_2HDMa_MH3_1500_MH4_150_Mchi_10_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz'), 
     nEvents = cms.untracked.uint32(maxN),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),
