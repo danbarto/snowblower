@@ -6,6 +6,7 @@ Get x-secs. Needs a working cmsenv, like CMSSW_10_6_19
 
 import imp, os, sys
 import subprocess, shutil
+import glob
 
 ## default cmsRun cfg file
 defaultCFG = """
@@ -180,10 +181,15 @@ if __name__ == '__main__':
 
 
         ## Hacking in stupid samples that are somewhere else...
-        if not 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU' in database.keys():
-            with open('../data/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU.log', 'r') as f:
-                lines = f.readlines()
-            tt_files = [ l.replace('\n', '') for l in lines ]
+        overwrite = True
+        remote = False
+        if not 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU' in database.keys() or overwrite:
+            if remote:
+                with open('../data/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU.log', 'r') as f:
+                    lines = f.readlines()
+                tt_files = [ l.replace('\n', '') for l in lines ]
+            else:
+                tt_files = glob.glob('/nfs-7/userdata/dspitzba/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU/*.root')
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'] = {}
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['delphes'] = []
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'] = tt_files
@@ -193,7 +199,7 @@ if __name__ == '__main__':
                     yaml.dump(database, f, Dumper=Dumper)
 
 
-    test_merge = True
+    test_merge = False
     if test_merge:
         # We can hadd ~4 delphes samples, and ~20 ntuple files
         #sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
