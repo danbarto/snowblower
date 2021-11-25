@@ -330,7 +330,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
         ax.set_yscale('log')
         ax.legend()
 
-        fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_remote_'+histo+'_signal.png')
+        fig.savefig('/home/users/ewallace/public_html/HbbMET/signal_comp/'+str(histo)+'_signal.png')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     

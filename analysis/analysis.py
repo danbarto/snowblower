@@ -16,20 +16,20 @@ ak.behavior.update(candidate.behavior)
 from functools import partial
 
 from plots.helpers import makePlot2, scale_histos
-from tools.helpers import get_four_vec_fromPtEtaPhiM, match
+from tools.helpers import get_four_vec_fromPtEtaPhiM, match, delta_r_paf
 
 class FlatProcessor(processor.ProcessorABC):
-    def __init__(self):
+    def __init__(self, accumulator={}):
         self._accumulator = processor.dict_accumulator({
             "met": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("pt", "$p_{T}$ [GeV]", 80, 0, 800),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
             ),
-             "lead_fatjet_pt": hist.Hist(
+            "lead_fatjet_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("pt", "$p_{T}$ [GeV]", 80, 0, 800),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
             ),
             "lead_fatjet_eta": hist.Hist(
                 "Events",
@@ -41,16 +41,11 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("phi", "$\phi$", 33, -4, 4),
             ),
-            "lead_fatjet_mass": hist.Hist(
+            "lead_fatjet_sdmass": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
             ),
-            #"lead_fatjet_sdmass": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
-            #),
             "lead_fatjet_tau1": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
@@ -76,6 +71,56 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
             ),
+            "matched_fatjet_pt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
+            ),
+            "matched_fatjet_eta": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("eta", "$\eta$", 33, -4, 4),
+            ),
+            "matched_fatjet_phi": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 33, -4, 4),
+            ),
+            "matched_fatjet_sdmass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+            "matched_fatjet_tau1": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_1$", 10, 0, 0.7),
+            ),
+            "matched_fatjet_tau2": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_2$", 10, 0, 0.5),
+            ),
+            "matched_fatjet_tau3": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_3$", 10, 0, 0.4),
+            ),
+            "matched_fatjet_tau4": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("tau", "$\tau_4$", 10, 0, 0.3),
+            ),
+            "nmatchedfatjet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
+            ),
+            "delta_r_lead_matched": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("deltaR", "$\Delta R$", 10, 0, 1),
+            ),
             "ht": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
@@ -86,6 +131,8 @@ class FlatProcessor(processor.ProcessorABC):
                 partial(processor.defaultdict_accumulator, int)
             ),
         })
+        
+        self.accumulator.update(processor.dict_accumulator( accumulator ))
 
     @property
     def accumulator(self):
@@ -95,6 +142,22 @@ class FlatProcessor(processor.ProcessorABC):
         output = self.accumulator.identity()
 
         dataset = events.metadata['dataset']
+        
+        #meta_accumulator stuff
+        
+        sumw = np.sum(events['genweight'])
+        #sumw2 = np.sum(events['genweight']**2)
+        #nevents = sum(events['genEventCount'])
+
+        output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
+        #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
+        #output[events.metadata['filename']]['nevents'] += nevents
+        output[events.metadata['filename']]['nChunk'] += 1
+
+        output[dataset]['sumWeight'] += sumw
+        #output[dataset]['sumWeight2'] += sumw2
+        #output[dataset]['nevents'] += nevents
+        output[dataset]['nChunk'] += 1
         
         #define objects
         
@@ -187,27 +250,28 @@ class FlatProcessor(processor.ProcessorABC):
         #sublead_fatjet = fatjet[:,1:2]
         
         #gen
-        #gen = get_four_vec_fromPtEtaPhiM(
-        #    None,
-        #    pt = events.genpart_pt,
-        #    eta = events.genpart_eta,
-        #    phi = events.genpart_phi,
-        #    M = events.genpart_mass,
-        #    copy = False,
-        #)
-        #gen['pdgId'] = events.genpart_pid
+        gen = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.genpart_pt,
+            eta = events.genpart_eta,
+            phi = events.genpart_phi,
+            M = events.genpart_mass,
+            copy = False,
+        )
+        gen['pdgId'] = events.genpart_pid
         #gen['status'] = events.genpart_status
 
-        #higgs = gen[(gen.pdgId==25)][:,-1:]  # only keep the last copy. status codes seem messed up?
+        higgs = gen[(gen.pdgId==25)][:,-1:]  # only keep the last copy. status codes seem messed up?
 
-        #matched_jet = fatjet[match(fatjet, higgs, deltaRCut=0.8)]
-        #n_matched_jet = ak.num(matched_jet)
+        matched_jet = fatjet[match(fatjet, higgs, deltaRCut=0.8)]
+        n_matched_jet = ak.num(matched_jet)
+        
+        delta_r_lead_matched = delta_r_paf(matched_jet[:,0:1], lead_fatjet)   #just taking the first matched, in case there are multiple
         
         #MET
         
         met = ak.flatten(events.metpuppi_pt)
 
-        
         #selections
         met_sel = (met>200)
         ele_sel = ((ak.num(ele_l)==0) & met_sel)
@@ -247,14 +311,10 @@ class FlatProcessor(processor.ProcessorABC):
             dataset=dataset,
             phi=ak.flatten(lead_fatjet.phi[baseline], axis=1),
         )
-        output["lead_fatjet_mass"].fill(
+        output["lead_fatjet_sdmass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_fatjet.mass[baseline], axis=1),
         )
-        #output["lead_fatjet_sdmass"].fill(
-        #    dataset=dataset,
-        #    mass=ak.flatten(lead_fatjet.msoftdrop[baseline], axis=1),
-        #)
         output["lead_fatjet_tau1"].fill(
             dataset=dataset,
             tau=ak.flatten(lead_fatjet.tau1[baseline], axis=1),
@@ -271,45 +331,56 @@ class FlatProcessor(processor.ProcessorABC):
             dataset=dataset,
             tau=ak.flatten(lead_fatjet.tau4[baseline], axis=1)
         )
-
+        output["nfatjet"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(fatjet[baseline]),
+        )
+        output["nmatchedfatjet"].fill(
+            dataset=dataset,
+            multiplicity=n_matched_jet,
+        )
+        output["matched_fatjet_pt"].fill(
+            dataset=dataset,
+            pt=ak.flatten(matched_jet.pt[baseline], axis=1),
+        )
+        output["matched_fatjet_eta"].fill(
+            dataset=dataset,
+            eta=ak.flatten(matched_jet.eta[baseline], axis=1),
+        )
+        output["matched_fatjet_phi"].fill(
+            dataset=dataset,
+            phi=ak.flatten(matched_jet.phi[baseline], axis=1),
+        )
+        output["matched_fatjet_sdmass"].fill(
+            dataset=dataset,
+            mass=ak.flatten(matched_jet.mass[baseline], axis=1),
+        )
+        output["matched_fatjet_tau1"].fill(
+            dataset=dataset,
+            tau=ak.flatten(matched_jet.tau1[baseline], axis=1),
+        )
+        output["matched_fatjet_tau2"].fill(
+            dataset=dataset,
+            tau=ak.flatten(matched_jet.tau2[baseline], axis=1),
+        )
+        output["matched_fatjet_tau3"].fill(
+            dataset=dataset,
+            tau=ak.flatten(matched_jet.tau3[baseline], axis=1),
+        )
+        output["matched_fatjet_tau4"].fill(
+            dataset=dataset,
+            tau=ak.flatten(matched_jet.tau4[baseline], axis=1)
+        )
+        output["delta_r_lead_matched"].fill(
+            dataset=dataset,
+            deltaR=ak.to_numpy(delta_r_lead_matched)
+        )
 
         return output
 
     def postprocess(self, accumulator):
         return accumulator
 
-class meta_processor(processor.ProcessorABC):
-    def __init__(self, accumulator={}):
-        self._accumulator = processor.dict_accumulator( accumulator )
-
-    @property
-    def accumulator(self):
-        return self._accumulator
-
-    def process(self, events):
-        
-        output = self.accumulator.identity()
-
-        dataset = events.metadata['dataset']
-
-        sumw = np.sum(events['genweight'])
-        #sumw2 = sum(events['genEventSumw2'])
-        #nevents = sum(events['genEventCount'])
-
-        #output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
-        #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
-        #output[events.metadata['filename']]['nevents'] += nevents
-        #output[events.metadata['filename']]['nChunk'] += 1
-
-        output[dataset]['sumWeight'] += sumw
-        #output[dataset]['sumWeight2'] += sumw2
-        #output[dataset]['nevents'] += nevents
-        #output[dataset]['nChunk'] += 1
-        
-        return output
-
-    def postprocess(self, accumulator):
-        return accumulator
 
 if __name__ == '__main__':
 
@@ -353,12 +424,16 @@ if __name__ == '__main__':
         
         fileset = {
             #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples']
+            #'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
+            #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
+            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
+            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
+            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
+            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500']['ntuples'],
@@ -370,23 +445,13 @@ if __name__ == '__main__':
         for sample in fileset:
             if sample not in meta_accumulator:
                 meta_accumulator.update({sample: processor.defaultdict_accumulator(int)})
-                
-                #can probably add fileset level data in
-            
-        meta_output_flat = processor.run_uproot_job(
-            fileset,
-            treename='myana/mytree',
-            processor_instance = meta_processor(accumulator=meta_accumulator),
-            executor = exe,
-            executor_args = exe_args,
-            chunksize = 1000000,
-            maxchunks = None,
-        )
+            for f in fileset[sample]:
+                meta_accumulator.update({f: processor.defaultdict_accumulator(int)})
 
         output_flat = processor.run_uproot_job(
             fileset,
             treename='myana/mytree',
-            processor_instance = FlatProcessor(),
+            processor_instance = FlatProcessor(accumulator=meta_accumulator),
             executor = exe,
             executor_args = exe_args,
             chunksize=1000000,
@@ -396,7 +461,7 @@ if __name__ == '__main__':
         meta = {}
 
         for sample in fileset:
-            meta[sample] = meta_output_flat[sample]
+            meta[sample] = output_flat[sample]
             meta[sample]['xsec'] = samples[sample]['xsec']
 
         import matplotlib.pyplot as plt
@@ -406,21 +471,26 @@ if __name__ == '__main__':
         N_bins = hist.Bin('multiplicity', r'$N$', 6, -0.5, 5.5)
         mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 40, 0, 400)
         ht_bins = hist.Bin('pt', r'$H_{T}\ (GeV)$', 60, 0, 3000)
-        pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 60, 200, 800)
+        pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 80, 200, 1000)
         eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
         phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
+        deltaR_bins = hist.Bin("deltaR", "$\DeltaR$", 10, 0, 1)
         tau1_bins = hist.Bin("tau", "$\tau_1$", 10, 0, 0.7)
         tau2_bins = hist.Bin("tau", "$\tau_2$", 10, 0, 0.5)
         tau3_bins = hist.Bin("tau", "$\tau_3$", 10, 0, 0.4)
         tau4_bins = hist.Bin("tau", "$\tau_4$", 10, 0, 0.3)
 
         labels ={
+            ('ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 100\ to\ 200)$',
             ('ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 200\ to\ 400)$',
             ('ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 400\ to\ 600)$',
             ('ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 600\ to\ 800)$',
             ('ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 800\ to\ 1200)$',
             ('ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',): r'$ZJets\to\nu\nu\ (HT\ 1200\ to\ 2500)$',
-            ('W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): r'$W_0Jets\toL\nu$',
+            ('W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): r'$W0Jets\toL\nu$',
+            ('W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): r'$W0Jets\toL\nu$',
+            ('W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): r'$W0Jets\toL\nu$',
+            ('W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): r'$W0Jets\toL\nu$',
             #('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): r'$t\bar{t}$',
             ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',): '2HDMa_bb_1500_150_10',
             ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',): '2HDMa_bb_1500_250_10',
@@ -430,28 +500,49 @@ if __name__ == '__main__':
         }
 
         colors ={
+            ('ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',): '#355C7D',
             ('ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',): '#FED23F',
             ('ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',): '#EB7DB5',
             ('ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',): '#442288',
             ('ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',): '#6CA2EA',
             ('ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',): '#B5D33D',
-            ('W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): '#355C7D',
+            ('W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): '#A12D25',
+            ('W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): '#25A12D',
+            ('W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): '#2D25A1',
+            ('W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',): '#2599A1',
             #('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): '#355C7D',
         }
+        
+        signals = [('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',),
+                   ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), 
+                   ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), 
+                   ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), 
+                   ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)
+        ]
+        
         for key in output_flat.keys():
             if type(output_flat[key]) is not type(output_flat['cutflow']):
                 output_flat[key] = scale_histos(output_flat[key], meta, fileset, lumi=3000) #add merging capabilities
             
         #need to add order to the plots
-        makePlot2(output_flat, 'met', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        #makePlot2(output_flat, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
-        makePlot2(output_flat, 'lead_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'met', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=signals)
+        makePlot2(output_flat, 'lead_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=signals)
         makePlot2(output_flat, 'lead_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
         makePlot2(output_flat, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_sdmass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'matched_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
+        makePlot2(output_flat, 'nmatchedfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])       
+        makePlot2(output_flat, 'delta_r_lead_matched', 'deltaR', deltaR_bins, r'$\Delta R$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
         makePlot2(output_flat, 'ht', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=[('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',), ('2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',)])
