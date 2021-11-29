@@ -4,10 +4,7 @@ Most of these functions need to be updated for awkward1.
 '''
 import pandas as pd
 import numpy as np
-try:
-    import awkward1 as ak
-except ImportError:
-    import awkward as ak
+import awkward as ak
 
 from yaml import load, dump
 try:
@@ -55,13 +52,19 @@ def finalizePlotDir( path ):
     if not os.path.isdir(path):
         os.makedirs(path)
     shutil.copy( os.path.expandvars( '$TWHOME/Tools/php/index.php' ), path )
+
+#def pad_and_flatten(val): 
+#    import awkward as ak
+#    try:
+#        return ak.flatten(ak.fill_none(ak.pad_none(val, 1, clip=True), 0))
+        #return val.pad(1, clip=True).fillna(0.).flatten()#.reshape(-1, 1)
+#    except ValueError:
+#        return ak.flatten(val)
     
-
-
 def pad_and_flatten(val): 
     import awkward as ak
     try:
-        return ak.flatten(ak.fill_none(ak.pad_none(val, 1, clip=True), 0))
+        return ak.flatten(ak.pad_none(val, 1, clip=True))
         #return val.pad(1, clip=True).fillna(0.).flatten()#.reshape(-1, 1)
     except ValueError:
         return ak.flatten(val)
@@ -132,7 +135,6 @@ def get_four_vec_fromPtEtaPhiM(cand, pt, eta, phi, M, copy=True):
         vec4.__dict__.update(cand.__dict__)
     return vec4
 
-
 def scale_four_vec(vec, pt=1, eta=1, phi=1, mass=1):
     from coffea.nanoevents.methods import vector
     ak.behavior.update(vector.behavior)
@@ -162,7 +164,17 @@ def delta_phi_alt(first, second):
     return np.arccos(np.cos(first.phi - second.phi))
 
 def delta_r2(first, second):
-    return (first.eta - second.eta) ** 2 + delta_phi_alt(first, second) ** 2
+    return (first.eta - second.eta)**2 + delta_phi_alt(first, second)**2
 
 def delta_r(first, second):
     return np.sqrt(delta_r2(first, second))
+
+def delta_phi_alt_paf(first, second):
+    # my version, seems to be faster (and unsigned)
+    return np.arccos(np.cos(pad_and_flatten(first.phi) - pad_and_flatten(second.phi)))
+                     
+def delta_r2_paf(first, second):
+    return (pad_and_flatten(first.eta) - pad_and_flatten(second.eta))**2 + delta_phi_alt_paf(first, second)**2
+
+def delta_r_paf(first, second):
+    return np.sqrt(delta_r2_paf(first, second))
