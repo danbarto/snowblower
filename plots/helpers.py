@@ -292,6 +292,11 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
         
 
         edge = list(keys)[0]
+        
+        backgrounds = []
+        for sample in keys:
+            if sample not in signals:
+                backgrounds += (sample,)
            
         fig, (ax) = plt.subplots(figsize=(10,10))
         hep.cms.label(
@@ -301,36 +306,34 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
             #lumi = 3000,
             rlabel = '14 TeV',
         )
+        if backgrounds != []:
+            hep.histplot(
+                [histos[sample].counts for sample in backgrounds],
+                histos[edge].edges,
+                #w2=[(hists[x].errors)**2 for x in keys ],
+                histtype="fill",
+                stack=True,
+                label=[labels[sample] for sample in backgrounds],
+                color=[colors[sample] for sample in backgrounds],
+                ax=ax
+            )
         
-        for sample in keys:
-            if sample not in signals:
-                hep.histplot(
-                    histos[sample].counts,
-                    histos[edge].edges,
-                    #w2=[(hists[x].errors)**2 for x in keys ],
-                    histtype="fill",
-                    stack=True,
-                    label=labels[sample],
-                    color=colors[sample],
-                    ax=ax
-                )
-            if sample in signals:
-                hep.histplot(
-                    histos[sample].counts,
-                    histos[edge].edges,
-                    #w2=[(hists[x].errors)**2 for x in keys ],
-                    histtype="step",
-                    stack=True,
-                    label=labels[sample],
-                    ax=ax
-                )
+        hep.histplot(
+            [histos[sample].counts for sample in signals],
+            histos[edge].edges,
+            #w2=[(hists[x].errors)**2 for x in keys ],
+            histtype="step",
+            stack=False,
+            label=[labels[sample] for sample in signals],
+            ax=ax
+        )
         
         ax.set_xlabel(xlabel)
         ax.set_ylabel(r'Events')
         ax.set_yscale('log')
-        ax.legend()
+        ax.legend(prop={'size': 10})
 
-        fig.savefig('/home/users/ewallace/public_html/HbbMET/delphes_flat_remote_'+histo+'_signal.png')
+        fig.savefig('/home/users/ewallace/public_html/HbbMET/background/'+str(histo)+'_merged.png')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -377,15 +380,14 @@ def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over'
     ax.fill_between(x=bins, y1=np.r_[down, down[-1]], y2=np.r_[up, up[-1]], **opts)
 
 
-def scale_histos(histogram, samples, fileset, lumi=3000):
+def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     """
     Scale samples to a physical cross section.
-    Merge samples into categories, e.g. several ttZ samples into one ttZ category. Not yet implimented
+    Merge samples into categories, e.g. several ttZ samples into one ttZ category. Not yet implemented
     
     histogram -- coffea histogram
     samples -- samples dictionary that contains the x-sec and sumWeight
     fileset -- fileset dictionary used in the coffea processor
-    nano_mapping -- dictionary to map NanoAOD samples into categories. Not yet implimented
     lumi -- integrated luminosity in 1/fb
     """
     temp = histogram.copy()
@@ -396,12 +398,16 @@ def scale_histos(histogram, samples, fileset, lumi=3000):
 
     
     # merge according to categories:
-    # merge categorical axes (example from coffea tutorial)
-    #mapping = {
-    #    'all samples': ['sample 1', 'sample 2'],
-    #    'just sample 1': ['sample 1'],
-    #}
-    #temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), nano_mapping) # this is not in place
+     mapping = {
+        'ZJetsToNuNu_HT': ['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU'],
+        'WJetsToLNu_Njet': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU'],
+        '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500'],
+        '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500'],
+        '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500'],
+        '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500'],
+        '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'],
+    }
+    temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), mapping)
                 
     return temp
 
