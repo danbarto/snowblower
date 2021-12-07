@@ -398,9 +398,10 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
 
     
     # merge according to categories:
-     mapping = {
+    mapping = {
         'ZJetsToNuNu_HT': ['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU'],
         'WJetsToLNu_Njet': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU'],
+        'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'],
         '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500'],
         '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500'],
         '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500'],
