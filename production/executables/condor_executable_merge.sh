@@ -21,10 +21,10 @@ function stageout {
     COPY_STATUS=1
     until [ $retries -ge 3 ]
     do
-        #echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
-        echo "Stageout attempt $((retries+1))"
-        env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
-        #env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
+        echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
+        #echo "Stageout attempt $((retries+1))"
+        #env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
+        env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
         COPY_STATUS=$?
         if [ $COPY_STATUS -ne 0 ]; then
             echo "Failed stageout attempt $((retries+1))"
@@ -80,7 +80,7 @@ echo "Current directory:"
 echo `pwd`
 
 IFS=',' read -r -a array <<< "$INPUTFILENAMES"
-PREFIX="root://eosproject.cern.ch/"
+PREFIX=""
 array=( "${array[@]/#/${PREFIX}}" )
 INPUTFILENAMES=$(IFS=' '; echo "${array[*]}")
 
@@ -94,14 +94,16 @@ pwd
 ls -la
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# copy output to eos
+export REP="/store"
+OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
 
 echo "Final output path for xrootd:"
 echo ${OUTPUTDIR}
 
 # we need to copy ${OUTPUTNAME} and ${NTUPLE}
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+#COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 

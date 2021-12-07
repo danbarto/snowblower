@@ -21,10 +21,10 @@ function stageout {
     COPY_STATUS=1
     until [ $retries -ge 3 ]
     do
-        echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
-        #echo "Stageout attempt $((retries+1))"
-        #env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
-        env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
+        #echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
+        echo "Stageout attempt $((retries+1))"
+        env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
+        #env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
         COPY_STATUS=$?
         if [ $COPY_STATUS -ne 0 ]; then
             echo "Failed stageout attempt $((retries+1))"
@@ -79,49 +79,29 @@ setup_cmssw $CMSSWVERSION $SCRAMARCH
 echo "Current directory:"
 echo `pwd`
 
-mkdir temp
-cd temp
-cp ../*.gz .
-tar xf *.gz
-echo "After unpacking"
-pwd
-ls -la
+IFS=',' read -r -a array <<< "$INPUTFILENAMES"
+PREFIX="root://eosproject.cern.ch/"
+array=( "${array[@]/#/${PREFIX}}" )
+INPUTFILENAMES=$(IFS=' '; echo "${array[*]}")
 
-mv psets/skimmer.C ../
-mv psets/run_skimmer.py ../
+echo "Hadding the following files:"
+echo $INPUTFILENAMES
 
-cd ../
-
-echo "Transfering file"
-xrdcp $INPUTFILENAMES input.root
-
-echo "Before running"
-pwd
-ls -la
-python run_skimmer.py input.root ${OUTPUTNAME}.root
+hadd ${OUTPUTNAME}.root $INPUTFILENAMES
 
 echo "After running"
 pwd
 ls -la
 
-if [ -f ${OUTPUTNAME}.root ]; then
-  echo "Output file exists";
-else
-  echo "No output produced, exiting"
-  exit 1
-fi
-
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export REP="/store"
-OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
+# copy output to eos
 
 echo "Final output path for xrootd:"
 echo ${OUTPUTDIR}
 
 # we need to copy ${OUTPUTNAME} and ${NTUPLE}
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-#COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
-COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 
@@ -131,4 +111,3 @@ echo "Total runtime (m): " `expr $endTime / 60 - $startTime / 60`
 
 echo "removing inputs from condor"
 rm -f ${OUTPUTNAME}.root
-rm -f input.root

@@ -21,10 +21,10 @@ function stageout {
     COPY_STATUS=1
     until [ $retries -ge 3 ]
     do
-        echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
-        #echo "Stageout attempt $((retries+1))"
-        #env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
-        env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
+        #echo "Stageout attempt $((retries+1)): env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}"
+        echo "Stageout attempt $((retries+1))"
+        env -i X509_USER_PROXY=${X509_USER_PROXY} xrdcp -f ${COPY_SRC} ${COPY_DEST}
+        #env -i X509_USER_PROXY=${X509_USER_PROXY} gfal-copy -p -f -t 7200 --verbose --checksum ADLER32 ${COPY_SRC} ${COPY_DEST}
         COPY_STATUS=$?
         if [ $COPY_STATUS -ne 0 ]; then
             echo "Failed stageout attempt $((retries+1))"
@@ -92,13 +92,34 @@ mv psets/run_skimmer.py ../
 
 cd ../
 
-echo "Transfering file"
-xrdcp $INPUTFILENAMES input.root
+IFS=',' read -r -a array <<< "$INPUTFILENAMES"
 
-echo "Before running"
-pwd
-ls -la
-python run_skimmer.py input.root ${OUTPUTNAME}.root
+for f in ${array[@]}
+do
+  echo "Processing $f"
+  OUTFILETMP="$(basename $f)"
+  echo "Transfering file"
+  xrdcp $f $OUTFILETMP
+
+  echo "Before running"
+  pwd
+
+  ls -la
+
+
+  export REP=".root"
+  OUTFILETMP2="${OUTFILETMP/$REP/_out.root}"
+
+  python run_skimmer.py ${OUTFILETMP} ${OUTFILETMP2}
+
+  rm ${OUTFILETMP}
+ # do something on $f
+done
+
+
+NEWINPUTS=`ls *_out.root`
+
+hadd ${OUTPUTNAME}.root $NEWINPUTS
 
 echo "After running"
 pwd
@@ -112,16 +133,20 @@ else
 fi
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-export REP="/store"
-OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
+# copy output to eos
+# root://eosproject.cern.ch//eos/user/d/dspitzba/test/test.csv
+
+
+#export REP="/store"
+#OUTPUTDIR="${OUTPUTDIR/\/hadoop\/cms\/store/$REP}"
 
 echo "Final output path for xrootd:"
 echo ${OUTPUTDIR}
 
 # we need to copy ${OUTPUTNAME} and ${NTUPLE}
+
 COPY_SRC="file://`pwd`/${OUTPUTNAME}.root"
-#COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
-COPY_DEST=" davs://redirector.t2.ucsd.edu:1094/${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
+COPY_DEST=" root://eosproject.cern.ch//${OUTPUTDIR}/${OUTPUTNAME}_${IFILE}.root"
 stageout $COPY_SRC $COPY_DEST
 
 
