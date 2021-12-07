@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-
-import warnings
-warnings.filterwarnings("ignore")
-
 import awkward as ak
 import uproot
 import numpy as np
@@ -16,7 +12,10 @@ ak.behavior.update(candidate.behavior)
 from functools import partial
 
 from plots.helpers import makePlot2, scale_and_merge_histos
-from tools.helpers import get_four_vec_fromPtEtaPhiM, match, delta_r_paf
+from tools.helpers import choose, get_four_vec_fromPtEtaPhiM, match, mt
+
+import warnings
+warnings.filterwarnings("ignore")
 
 class FlatProcessor(processor.ProcessorABC):
     def __init__(self, accumulator={}):
@@ -24,7 +23,17 @@ class FlatProcessor(processor.ProcessorABC):
             "met_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
+                hist.Bin("pt", "$MET_{pt}$ [GeV]", 100, 0, 1000),
+            ),
+            "ht": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$H_{T}$ [GeV]", 60, 0, 3000),
+            ),
+            "min_mt_fj_met": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mt", "$M_{T}$ [GeV]", 60, 0, 3000),
             ),
             "lead_fatjet_pt": hist.Hist(
                 "Events",
@@ -66,81 +75,81 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_4$", 10, 0, 0.3),
             ),
-            "nfatjet": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
-            ),
-            "njet": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
-            ),
-            "ht": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                hist.Bin("pt", "$H_{T}$ [GeV]", 60, 0, 3000),
-            ),
-            "delta_phi_ml": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                hist.Bin("phi", "$\phi$", 17, 0, 4),
-            ),
             "lead_fatjet_tau21": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("tau", "$\tau_{2}/\tau{1}$", 100, 0, 2.0)
             ),
-            #"matched_fatjet_pt": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
-            #),
-            #"matched_fatjet_eta": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("eta", "$\eta$", 33, -4, 4),
-            #),
-            #"matched_fatjet_phi": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("phi", "$\phi$", 33, -4, 4),
-            #),
-            #"matched_fatjet_sdmass": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
-            #),
-            #"matched_fatjet_tau1": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("tau", "$\tau_1$", 10, 0, 0.7),
-            #),
-            #"matched_fatjet_tau2": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("tau", "$\tau_2$", 10, 0, 0.5),
-            #),
-            #"matched_fatjet_tau3": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("tau", "$\tau_3$", 10, 0, 0.4),
-            #),
-            #"matched_fatjet_tau4": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("tau", "$\tau_4$", 10, 0, 0.3),
-            #),
-            #"nmatchedfatjet": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("multiplicity", "$n_{fatjet}$", 6, -0.5, 5.5),
-            #),
-            #"delta_r_lead_matched": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    hist.Bin("deltaR", "$\Delta R$", 10, 0, 1),
-            #),
+            "nfatjet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 5, 0.5, 5.5),
+            ),
+            "lead_extrajet_pt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
+            ),
+            "lead_extrajet_eta": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("eta", "$\eta$", 33, -4, 4),
+            ),
+            "lead_extrajet_phi": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 33, -4, 4),
+            ),
+            "lead_extrajet_mass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+            "nextrajet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+            ),
+            "lead_extrabtag_pt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("pt", "$p_{T}$ [GeV]", 100, 0, 1000),
+            ),
+            "lead_extrabtag_eta": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("eta", "$\eta$", 33, -4, 4),
+            ),
+            "lead_extrabtag_phi": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 33, -4, 4),
+            ),
+            "lead_extrabtag_mass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("mass", "$p_{T}$ [GeV]", 50, 0, 500),
+            ),
+            "nextrabtag": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+            ),
+            "njet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+            ),
+            "dphiDiFatJet": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 16, 0, 4),
+            ),
+            "min_dphiFatJetMet4": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("phi", "$\phi$", 16, 0, 4),
+            ),
             'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
                 partial(processor.defaultdict_accumulator, int)
@@ -239,6 +248,7 @@ class FlatProcessor(processor.ProcessorABC):
         gamma_l = gamma[((gamma['id']>0)&(gamma['iso']>0)&(gamma.pt>20)&(np.abs(gamma.eta)<3))]
             
         #jets
+        
         jet = get_four_vec_fromPtEtaPhiM(
             None,
             pt = events.jetpuppi_pt,
@@ -247,6 +257,20 @@ class FlatProcessor(processor.ProcessorABC):
             M = events.jetpuppi_mass,
             copy = False,
         )
+        jet['id'] = events.jetpuppi_idpass
+        jet['btag'] = events.jetpuppi_btag
+        
+        
+        #follow Delphes recommendations
+        jet = jet[jet.pt > 30]
+        jet = jet[jet.id > 0]
+        #eta within tracker range
+        jet = jet[np.abs(jet.eta) < 3]
+        
+        jet = jet[~match(jet, electron, deltaRCut=0.4)] #remove electron overlap
+        jet = jet[~match(jet, muon, deltaRCut=0.4)] #remove muon overlap
+
+        btag = jet[jet.btag>0] #loose wp for now
         
         #fatjets
 
@@ -260,7 +284,7 @@ class FlatProcessor(processor.ProcessorABC):
             pt = events.fatjet_pt,
             eta = events.fatjet_eta,
             phi = events.fatjet_phi,
-            M = events.fatjet_msoftdrop,        #guess we're using softdrop from now on?
+            M = events.fatjet_msoftdrop,        #Using softdrop from now on
             copy = False,
         )
         
@@ -270,13 +294,32 @@ class FlatProcessor(processor.ProcessorABC):
         fatjet['tau3'] = events.fatjet_tau3
         fatjet['tau4'] = events.fatjet_tau4
         
+        #eta within tracker range
+        fatjet = fatjet[np.abs(fatjet.eta) < 3]
         fatjet = fatjet[ak.argsort(fatjet.pt, ascending=False)]
-        lead_fatjet = fatjet[:,0:1]
-         
-        tau21 = np.divide(lead_fatjet.tau2, lead_fatjet.tau1)
-        #sublead_fatjet = fatjet[:,1:2]
         
+        fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
+        on_h = (ak.num(fatjet_on_h) > 0)
+        
+        lead_fatjet = fatjet[:,0:1]
+        #sublead_fatjet = fatjet[:,1:2] 
+        
+        lead_fatjets = fatjet[:,0:2]
+        difatjet = choose(lead_fatjets, 2)
+        dphiDiFatJet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
+        
+        tau21 = np.divide(lead_fatjet.tau2, lead_fatjet.tau1)
+        
+        extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
+        extrabtag = extrajet[extrajet.btag>0] #loose wp for now]
+        extrajet = extrajet[ak.argsort(extrajet.pt, ascending=False)]
+        extrabtag = extrabtag[ak.argsort(extrabtag.pt, ascending=False)]
+        lead_extrajet = extrajet[:,0:1]
+        lead_extrabtag = extrabtag[:,0:1]
+        
+                
         #gen
+        
         #gen = get_four_vec_fromPtEtaPhiM(
         #    None,
         #    pt = events.genpart_pt,
@@ -298,86 +341,146 @@ class FlatProcessor(processor.ProcessorABC):
       
         
         #MET
+        
         met_pt = ak.flatten(events.metpuppi_pt)
         met_phi = ak.flatten(events.metpuppi_phi)
         
         delta_phi_ml = np.arccos(np.cos(lead_fatjet.phi - met_phi))
+        mt_fj_met = mt(fatjet_on_h.pt, fatjet_on_h.phi, met_pt, met_phi)
+        min_mt_fj_met = ak.min(mt_fj_met, axis=1, mask_identity=False)
+        min_dphiFatJetMet4 = ak.min(np.arccos(np.cos(fatjet[:,:4].phi-met_phi)), axis=1, mask_identity=False)
 
         #selections
-        met_sel = (met_pt>200)
-        ele_sel = ((ak.num(ele_l)==0) & met_sel)
+        ele_sel = (ak.num(ele_l)==0)
         mu_sel = ((ak.num(muon_l)==0) & ele_sel)
-        tau_sel = ((ak.num(tau_l)==0) & mu_sel)
-        baseline = ((ak.num(gamma_l)==0) & tau_sel)
+        baseline = ((ak.num(tau_l)==0) & mu_sel)
+        met_sel = (baseline & (met_pt>200))
+        n_ak8 = ((ak.num(fatjet)>0) & met_sel)
+        min_dphiFatJetMet4_sel = ((min_dphiFatJetMet4 > 0.5) & n_ak8)
+        dphiDiFatJet_sel = (ak.all(dphiDiFatJet < 2.5, axis=1) & min_dphiFatJetMet4_sel)
+        on_h_sel = (on_h & dphiDiFatJet_sel)
+        min_mt = ((min_mt_fj_met > 200) & on_h_sel)
 
         #output
         output['cutflow'][dataset]['total'] += len(met_pt)
-        output['cutflow'][dataset]['met>200'] += len(met_pt[met_sel])
         output['cutflow'][dataset]['n_ele==0'] += len(met_pt[ele_sel])
         output['cutflow'][dataset]['n_mu==0'] += len(met_pt[mu_sel])
-        output['cutflow'][dataset]['n_tau==0'] += len(met_pt[tau_sel])
-        output['cutflow'][dataset]['n_gamma==0'] += len(met_pt[baseline])
-
+        output['cutflow'][dataset]['n_tau==0'] += len(met_pt[baseline])
+        output['cutflow'][dataset]['met>200'] += len(met_pt[met_sel])
+        output['cutflow'][dataset]['n_ak8>=1'] += len(met_pt[n_ak8])
+        output['cutflow'][dataset]['min_dphiFatJetMet4>0.5'] += len(met_pt[min_dphiFatJetMet4_sel])
+        output['cutflow'][dataset]['dphiDiFatJet<2.5'] += len(met_pt[dphiDiFatJet_sel])
+        output['cutflow'][dataset]['on-H'] += len(met_pt[on_h_sel])
+        output['cutflow'][dataset]['minmth>200'] += len(met_pt[min_mt])
+        
         output["met_pt"].fill(
             dataset=dataset,
-            pt=met_pt[baseline],
+            pt=met_pt[(baseline & (ak.num(fatjet)>0) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))],
         )
         output["ht"].fill(
             dataset=dataset,
-            pt = ak.sum(events.jetpuppi_pt[baseline], axis=1),
+            pt = ak.sum(events.jetpuppi_pt[min_mt], axis=1),
+        )
+        output["min_mt_fj_met"].fill(
+            dataset=dataset,
+            mt = ak.min(mt_fj_met[on_h_sel], axis=1),
         )
         output["nfatjet"].fill(
             dataset=dataset,
-            multiplicity=ak.num(fatjet[baseline]),
+            multiplicity=ak.num(fatjet[((met_sel) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & (min_mt_fj_met > 200))]),
         )
         output["lead_fatjet_pt"].fill(
             dataset=dataset,
-            pt=ak.flatten(lead_fatjet.pt[baseline], axis=1),
+            pt=ak.to_numpy(ak.flatten(lead_fatjet.pt[min_mt], axis=1)),
         )
         output["lead_fatjet_eta"].fill(
             dataset=dataset,
-            eta=ak.flatten(lead_fatjet.eta[baseline], axis=1),
+            eta=ak.flatten(lead_fatjet.eta[min_mt], axis=1),
         )
         output["lead_fatjet_phi"].fill(
             dataset=dataset,
-            phi=ak.flatten(lead_fatjet.phi[baseline], axis=1),
+            phi=ak.flatten(lead_fatjet.phi[min_mt], axis=1),
         )
         output["lead_fatjet_sdmass"].fill(
             dataset=dataset,
-            mass=ak.flatten(lead_fatjet.mass[baseline], axis=1),
+            mass=ak.flatten(lead_fatjet.mass[(dphiDiFatJet_sel & (min_mt_fj_met > 200))], axis=1),
         )
         output["lead_fatjet_tau1"].fill(
             dataset=dataset,
-            tau=ak.flatten(lead_fatjet.tau1[baseline], axis=1),
+            tau=ak.flatten(lead_fatjet.tau1[min_mt], axis=1),
         )
         output["lead_fatjet_tau2"].fill(
             dataset=dataset,
-            tau=ak.flatten(lead_fatjet.tau2[baseline], axis=1),
+            tau=ak.flatten(lead_fatjet.tau2[min_mt], axis=1),
         )
         output["lead_fatjet_tau3"].fill(
             dataset=dataset,
-            tau=ak.flatten(lead_fatjet.tau3[baseline], axis=1),
+            tau=ak.flatten(lead_fatjet.tau3[min_mt], axis=1),
         )
         output["lead_fatjet_tau4"].fill(
             dataset=dataset,
-           tau=ak.flatten(lead_fatjet.tau4[baseline], axis=1)
+           tau=ak.flatten(lead_fatjet.tau4[min_mt], axis=1),
         )
         output["lead_fatjet_tau21"].fill(
             dataset=dataset,
-            tau = ak.flatten(tau21[baseline])
+            tau = ak.flatten(tau21[min_mt], axis=1),
         )
-        #output["nfatjet"].fill(
-        #    dataset=dataset,
-        #    multiplicity=ak.num(fatjet[baseline]),
-        #)
-        #output["njet"].fill(
-        #    dataset=dataset,
-        #    multiplicity=ak.num(jet[baseline]),
-        #)
-        #output["delta_phi_ml"].fill(
-        #    dataset=dataset,
-        #    phi = ak.flatten(delta_phi_ml[baseline]),
-        #)
+        output["nfatjet"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(fatjet[min_mt], axis=1),
+        )
+        output["lead_extrajet_pt"].fill(
+            dataset=dataset,
+            pt=ak.flatten(lead_extrajet.pt[min_mt], axis=1),
+        )
+        output["lead_extrajet_eta"].fill(
+            dataset=dataset,
+            eta=ak.flatten(lead_extrajet.eta[min_mt], axis=1),
+        )
+        output["lead_extrajet_phi"].fill(
+            dataset=dataset,
+            phi=ak.flatten(lead_extrajet.phi[min_mt], axis=1),
+        )
+        output["lead_extrajet_mass"].fill(
+            dataset=dataset,
+            mass=ak.flatten(lead_extrajet.mass[min_mt], axis=1),
+        )
+        output["nextrajet"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(extrajet[min_mt]),
+        )
+        output["lead_extrabtag_pt"].fill(
+            dataset=dataset,
+            pt=ak.flatten(lead_extrabtag.pt[min_mt], axis=1),
+        )
+        output["lead_extrabtag_eta"].fill(
+            dataset=dataset,
+            eta=ak.flatten(lead_extrabtag.eta[min_mt], axis=1),
+        )
+        output["lead_extrabtag_phi"].fill(
+            dataset=dataset,
+            phi=ak.flatten(lead_extrabtag.phi[min_mt], axis=1),
+        )
+        output["lead_extrabtag_mass"].fill(
+            dataset=dataset,
+            mass=ak.flatten(lead_extrabtag.mass[min_mt], axis=1),
+        )
+        output["nextrabtag"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(extrabtag[min_mt]),
+        )
+        output["njet"].fill(
+            dataset=dataset,
+            multiplicity=ak.num(jet[min_mt]),
+        )
+        output["dphiDiFatJet"].fill(
+            dataset=dataset,
+            phi = ak.flatten(dphiDiFatJet[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200))]),
+        )
+        output["min_dphiFatJetMet4"].fill(
+            dataset=dataset,
+            phi = min_dphiFatJetMet4[(n_ak8 & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))],
+        )
         #output["nmatchedfatjet"].fill(
         #    dataset=dataset,
         #    multiplicity=n_matched_jet,
@@ -511,20 +614,22 @@ if __name__ == '__main__':
         import mplhep as hep
         plt.style.use(hep.style.CMS)
 
-        N_bins = hist.Bin('multiplicity', r'$N$', 6, -0.5, 5.5)
-        N_bins2 = hist.Bin('multiplicity', r'$N$', 7, -0.5, 6.5)
+        N_bins = hist.Bin('multiplicity', r'$N$', 5, 0.5, 5.5)
+        N_bins2 = hist.Bin('multiplicity', r'$N$', 7, 0.5, 7.5)
         mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 40, 0, 400)
         ht_bins = hist.Bin('pt', r'$H_{T}\ (GeV)$', 60, 0, 3000)
+        mt_bins = hist.Bin('mt', r'$M_{T}\ (GeV)$', 40, 0, 2000)
         pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 80, 200, 1000)
+        met_bins = hist.Bin('pt', r'$MET_{pt}\ (GeV)$', 100, 0, 1000)
         eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
         phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
-        phi_bins2 = hist.Bin("phi", "$\phi$", 17, 0, 4)
+        phi_bins2 = hist.Bin("phi", "$\phi$", 16, 0, 4)
         deltaR_bins = hist.Bin("deltaR", "$\DeltaR$", 10, 0, 1)
         tau1_bins = hist.Bin("tau", "$\tau_1$", 10, 0, 0.7)
         tau2_bins = hist.Bin("tau", "$\tau_2$", 10, 0, 0.5)
         tau3_bins = hist.Bin("tau", "$\tau_3$", 10, 0, 0.4)
         tau4_bins = hist.Bin("tau", "$\tau_4$", 10, 0, 0.3)
-        tau21_bins = hist.Bin("tau", "$\tau_4$", 100, 0, 2.0)
+        tau21_bins = hist.Bin("tau", "$\tau_4$", 50, 0, 1.0)
 
         labels ={
             ('ZJetsToNuNu_HT',): r'$ZJets\to\nu\nu\ (binned\ by\ HT)$',
@@ -558,7 +663,7 @@ if __name__ == '__main__':
                 scaled_output[key] = scale_and_merge_histos(output_flat[key], meta, fileset, lumi=3000)
             
         #need to add order to the plots
-        makePlot2(scaled_output, 'met_pt', 'pt', pt_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'lead_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
@@ -569,16 +674,18 @@ if __name__ == '__main__':
         makePlot2(scaled_output, 'lead_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'lead_fatjet_tau21', 'tau', tau21_bins, r'$\tau_{2}/\tau_{1}$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrajet_pt', 'pt', met_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrajet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrajet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrajet_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'nextrajet', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrabtag_pt', 'pt', met_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrabtag_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrabtag_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'lead_extrabtag_mass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'nextrabtag', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'njet', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
         makePlot2(scaled_output, 'ht', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'delta_phi_ml', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjet,\ MET)$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_sdmass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'matched_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=signals)
-        #makePlot2(output_flat, 'nmatchedfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=signals)     
-        #makePlot2(output_flat, 'delta_r_lead_matched', 'deltaR', deltaR_bins, r'$\Delta R$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'dphiDiFatJet', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjets)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'min_dphiFatJetMet4', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ fatjets,\ MET)$', labels, colors, signals=signals)
+        makePlot2(scaled_output, 'min_mt_fj_met', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals=signals)

@@ -284,8 +284,8 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
                 
         for sample in keys:
             h1 = Hist1D.from_bincounts(
-                tmp1.values(overflow = 'over')[sample].T,
-                (tmp1.axis(axis).edges(overflow = 'over')),
+                tmp1.values(overflow = 'all')[sample].T,
+                (tmp1.axis(axis).edges(overflow = 'all')),
                 #errors = np.sqrt(tmp1.sum('pt', 'dataset', overflow = 'all').values(sumw2=True, overflow = 'all')[()][1].T),
             )
             histos[sample] = h1
@@ -333,7 +333,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
         ax.set_yscale('log')
         ax.legend(prop={'size': 10})
 
-        fig.savefig('/home/users/ewallace/public_html/HbbMET/background/'+str(histo)+'_merged.png')
+        fig.savefig('/home/users/ewallace/public_html/HbbMET/presentation/'+str(histo)+'.png')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     

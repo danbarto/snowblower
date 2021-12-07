@@ -21,6 +21,15 @@ import glob
 
 data_path = os.path.expandvars('$TWHOME/data/')
 
+def choose(first, n=2):
+    tmp = ak.combinations(first, n)
+    combs = tmp['0']
+    for i in range(1,n):
+        combs = combs.__add__(tmp[str(i)])
+    for i in range(n):
+        combs[str(i)] = tmp[str(i)]
+    return combs
+
 def get_samples(f_in='samples.yaml'):
     with open(data_path+f_in) as f:
         return load(f, Loader=Loader)
@@ -155,6 +164,12 @@ def match(first, second, deltaRCut=0.4):
     drCut2 = deltaRCut**2
     combs = ak.cartesian([first, second], nested=True)
     return ak.any((delta_r2(combs['0'], combs['1'])<drCut2), axis=2)
+
+def mt(pt1, phi1, pt2, phi2):
+    '''
+    Calculate MT
+    '''
+    return np.sqrt( 2*pt1*pt2 * (1 - np.cos(phi1-phi2)) )
 
 def delta_phi(first, second):
     return (first.phi - second.phi + np.pi) % (2 * np.pi) - np.pi
