@@ -211,14 +211,18 @@ if __name__ == '__main__':
     if True:
         for sample in database.keys():
         #for sample in ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
-            database[sample]['nevents'] = get_nevents(database[sample]['ntuples'])
+            try:
+                nevents = database[sample]['nevents']
+            except KeyError:
+                database[sample]['nevents'] = get_nevents(database[sample]['ntuples'])
 
-            with open('../data/samples.yaml', 'w') as f:
-                yaml.dump(database, f, Dumper=Dumper)
+                with open('../data/samples.yaml', 'w') as f:
+                    yaml.dump(database, f, Dumper=Dumper)
 
     if False:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
-            print (sample)
+            database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v12/'%sample)
+            #print (sample)
             # NOTE need to get the skim directory.
             # Something like
             # gfal-ls root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_v12/
