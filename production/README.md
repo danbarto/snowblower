@@ -6,3 +6,6 @@ To set the correct paths run `source setup.sh`.
 
 Tasks are submitted with `ipython -i make_delphes.py`.
 
+
+A custom version of ProjectMetis is needed to stage out on eos.
+

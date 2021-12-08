@@ -6,6 +6,8 @@ Get x-secs. Needs a working cmsenv, like CMSSW_10_6_19
 
 import imp, os, sys
 import subprocess, shutil
+import glob
+import uproot
 
 ## default cmsRun cfg file
 defaultCFG = """
@@ -78,6 +80,15 @@ def get_sample_info(name, delphes_path='root://cmseos.fnal.gov//store/user/snowm
     results['xsec_sigma'] = unc
 
     return results
+
+def get_nevents(ntuples, treename='myana/mytree'):
+    nevents = 0
+    for i, ntuple in enumerate(ntuples):
+        print (i/len(ntuples), ntuple)
+        with uproot.open(ntuple)[treename] as tree:
+            # uproot finally has context management!
+            nevents += len(tree.arrays(['metpuppi_pt']))
+    return nevents
 
 def chunk(in_list, n):
     return [in_list[i * n:(i + 1) * n] for i in range((len(in_list) + n - 1) // n )]
@@ -180,10 +191,15 @@ if __name__ == '__main__':
 
 
         ## Hacking in stupid samples that are somewhere else...
-        if not 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU' in database.keys():
-            with open('../data/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU.log', 'r') as f:
-                lines = f.readlines()
-            tt_files = [ l.replace('\n', '') for l in lines ]
+        overwrite = False
+        remote = True
+        if not 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU' in database.keys() or overwrite:
+            if remote:
+                with open('../data/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU.log', 'r') as f:
+                    lines = f.readlines()
+                tt_files = [ l.replace('\n', '') for l in lines ]
+            else:
+                tt_files = glob.glob('/nfs-7/userdata/dspitzba/TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU/*.root')
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'] = {}
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['delphes'] = []
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'] = tt_files
@@ -192,8 +208,28 @@ if __name__ == '__main__':
             with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
+    if True:
+        for sample in database.keys():
+        #for sample in ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
+            try:
+                nevents = database[sample]['nevents']
+            except KeyError:
+                database[sample]['nevents'] = get_nevents(database[sample]['ntuples'])
 
-    test_merge = True
+                with open('../data/samples.yaml', 'w') as f:
+                    yaml.dump(database, f, Dumper=Dumper)
+
+    if False:
+        for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
+            database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v12/'%sample)
+            #print (sample)
+            # NOTE need to get the skim directory.
+            # Something like
+            # gfal-ls root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_v12/
+            # Then verify that they are actually working
+
+
+    test_merge = False
     if test_merge:
         # We can hadd ~4 delphes samples, and ~20 ntuple files
         #sample_name = 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU'
