@@ -23,24 +23,24 @@ def submit():
     sample_names = list(samples.keys())
 
     sample_names = [
-        'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
-        'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
-        'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
-        'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
-        'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
-        'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
-        'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+        #'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        #'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
+        #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+        #'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
+        #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
+        #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
+        #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
      ]
 
 
@@ -72,7 +72,7 @@ def submit():
                 output_dir = "/eos/user/d/dspitzba/snowblower_data/%s_%s/"%(s, tag),
                 tarfile = "package.tar.gz",
                 open_dataset = False,
-                files_per_output = 50,
+                files_per_output = 10,  # was 50 for everything but ttbar
                 cmssw_version = "CMSSW_10_6_19",
                 scram_arch = "slc7_amd64_gcc820",
                 condor_submit_params = {
@@ -102,7 +102,7 @@ def submit():
                 tarfile = "package.tar.gz",
                 output_dir = "/eos/user/d/dspitzba/snowblower_data/merge_%s_%s/"%(s, tag),
                 open_dataset = False,
-                files_per_output = 10,
+                files_per_output = 50,  # was 10 for everything but ttbar
                 cmssw_version = "CMSSW_10_6_19",
                 scram_arch = "slc7_amd64_gcc820",
                 condor_submit_params = {
