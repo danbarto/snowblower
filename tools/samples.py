@@ -227,6 +227,8 @@ if __name__ == '__main__':
             # Something like
             # gfal-ls root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_v12/
             # Then verify that they are actually working
+        with open('../data/samples.yaml', 'w') as f:
+            yaml.dump(database, f, Dumper=Dumper)
 
 
     test_merge = False
