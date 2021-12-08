@@ -219,7 +219,7 @@ if __name__ == '__main__':
                 with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
-    if False:
+    if True:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
             database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v12/'%sample)
             #print (sample)
