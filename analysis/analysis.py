@@ -4,6 +4,7 @@ import uproot
 import numpy as np
 import glob
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema, BaseSchema
+from coffea.analysis_tools import Weights
 from coffea import hist, processor
 # register our candidate behaviors
 from coffea.nanoevents.methods import candidate
@@ -360,126 +361,157 @@ class FlatProcessor(processor.ProcessorABC):
         dphiDiFatJet_sel = (ak.all(dphiDiFatJet < 2.5, axis=1) & min_dphiFatJetMet4_sel)
         on_h_sel = (on_h & dphiDiFatJet_sel)
         min_mt = ((min_mt_fj_met > 200) & on_h_sel)
+        
+        #weights
+        weight = Weights(len(met_pt))
+        weight.add(events.genweight)
 
         #output
-        output['cutflow'][dataset]['total'] += len(met_pt)
-        output['cutflow'][dataset]['n_ele==0'] += len(met_pt[ele_sel])
-        output['cutflow'][dataset]['n_mu==0'] += len(met_pt[mu_sel])
-        output['cutflow'][dataset]['n_tau==0'] += len(met_pt[baseline])
-        output['cutflow'][dataset]['met>200'] += len(met_pt[met_sel])
-        output['cutflow'][dataset]['n_ak8>=1'] += len(met_pt[n_ak8])
-        output['cutflow'][dataset]['min_dphiFatJetMet4>0.5'] += len(met_pt[min_dphiFatJetMet4_sel])
-        output['cutflow'][dataset]['dphiDiFatJet<2.5'] += len(met_pt[dphiDiFatJet_sel])
-        output['cutflow'][dataset]['on-H'] += len(met_pt[on_h_sel])
-        output['cutflow'][dataset]['minmth>200'] += len(met_pt[min_mt])
+        output['cutflow'][dataset]['total'] += len(met_pt)*weight.weight()
+        output['cutflow'][dataset]['n_ele==0'] += len(met_pt[ele_sel])*weight.weight()[ele_sel]
+        output['cutflow'][dataset]['n_mu==0'] += len(met_pt[mu_sel])*weight.weight()[mu_sel]
+        output['cutflow'][dataset]['n_tau==0'] += len(met_pt[baseline])*weight.weight()[baseline]
+        output['cutflow'][dataset]['met>200'] += len(met_pt[met_sel])*weight.weight()[met_sel]
+        output['cutflow'][dataset]['n_ak8>=1'] += len(met_pt[n_ak8])*weight.weight()[n_ak8]
+        output['cutflow'][dataset]['min_dphiFatJetMet4>0.5'] += len(met_pt[min_dphiFatJetMet4_sel])*weight.weight()[min_dphiFatJetMet4_sel]
+        output['cutflow'][dataset]['dphiDiFatJet<2.5'] += len(met_pt[dphiDiFatJet_sel])*weight.weight()[dphiDiFatJet_sel]
+        output['cutflow'][dataset]['on-H'] += len(met_pt[on_h_sel])*weight.weight()[on_h_sel]
+        output['cutflow'][dataset]['minmth>200'] += len(met_pt[min_mt])*weight.weight()[min_mt]
         
         output["met_pt"].fill(
             dataset=dataset,
             pt=met_pt[(baseline & (ak.num(fatjet)>0) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))],
+            weight = weight.weight()[(baseline & (ak.num(fatjet)>0) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))]
         )
         output["ht"].fill(
             dataset=dataset,
             pt = ak.sum(events.jetpuppi_pt[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["min_mt_fj_met"].fill(
             dataset=dataset,
             mt = ak.min(mt_fj_met[on_h_sel], axis=1),
+            weight = weight.weight()[on_h_sel]
         )
         output["nfatjet"].fill(
             dataset=dataset,
             multiplicity=ak.num(fatjet[((met_sel) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & (min_mt_fj_met > 200))]),
+            weight = weight.weight()[((met_sel) & (min_dphiFatJetMet4 > 0.5) & ak.all(dphiDiFatJet < 2.5, axis=1) & (min_mt_fj_met > 200))]
         )
         output["lead_fatjet_pt"].fill(
             dataset=dataset,
             pt=ak.to_numpy(ak.flatten(lead_fatjet.pt[min_mt], axis=1)),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(lead_fatjet.eta[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(lead_fatjet.phi[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_sdmass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_fatjet.mass[(dphiDiFatJet_sel & (min_mt_fj_met > 200))], axis=1),
+            weight = weight.weight()[(dphiDiFatJet_sel & (min_mt_fj_met > 200))]
         )
         output["lead_fatjet_tau1"].fill(
             dataset=dataset,
             tau=ak.flatten(lead_fatjet.tau1[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_tau2"].fill(
             dataset=dataset,
             tau=ak.flatten(lead_fatjet.tau2[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_tau3"].fill(
             dataset=dataset,
             tau=ak.flatten(lead_fatjet.tau3[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_tau4"].fill(
             dataset=dataset,
-           tau=ak.flatten(lead_fatjet.tau4[min_mt], axis=1),
+            tau=ak.flatten(lead_fatjet.tau4[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_fatjet_tau21"].fill(
             dataset=dataset,
             tau = ak.flatten(tau21[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["nfatjet"].fill(
             dataset=dataset,
             multiplicity=ak.num(fatjet[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrajet_pt"].fill(
             dataset=dataset,
             pt=ak.flatten(lead_extrajet.pt[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrajet_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(lead_extrajet.eta[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrajet_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(lead_extrajet.phi[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrajet_mass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_extrajet.mass[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["nextrajet"].fill(
             dataset=dataset,
             multiplicity=ak.num(extrajet[min_mt]),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrabtag_pt"].fill(
             dataset=dataset,
             pt=ak.flatten(lead_extrabtag.pt[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrabtag_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(lead_extrabtag.eta[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrabtag_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(lead_extrabtag.phi[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["lead_extrabtag_mass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_extrabtag.mass[min_mt], axis=1),
+            weight = weight.weight()[min_mt]
         )
         output["nextrabtag"].fill(
             dataset=dataset,
             multiplicity=ak.num(extrabtag[min_mt]),
+            weight = weight.weight()[min_mt]
         )
         output["njet"].fill(
             dataset=dataset,
             multiplicity=ak.num(jet[min_mt]),
+            weight = weight.weight()[min_mt]
         )
         output["dphiDiFatJet"].fill(
             dataset=dataset,
             phi = ak.flatten(dphiDiFatJet[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200))]),
+            weight = weight.weight()[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200))]
         )
         output["min_dphiFatJetMet4"].fill(
             dataset=dataset,
             phi = min_dphiFatJetMet4[(n_ak8 & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))],
+            weight = weight.weight()[(n_ak8 & ak.all(dphiDiFatJet < 2.5, axis=1) & on_h & (min_mt_fj_met > 200))]
         )
         #output["nmatchedfatjet"].fill(
         #    dataset=dataset,
@@ -540,7 +572,6 @@ if __name__ == '__main__':
     argParser.add_argument('--run_flat', action='store_true', default=None, help="Run on flat ntuples")
     argParser.add_argument('--dask', action='store_true', default=None, help="Run on DASK cluster")
     args = argParser.parse_args()
-
 
     with open('../data/samples.yaml', 'r') as f:
         samples = yaml.load(f, Loader = Loader)
@@ -609,6 +640,7 @@ if __name__ == '__main__':
         for sample in fileset:
             meta[sample] = output_flat[sample]
             meta[sample]['xsec'] = samples[sample]['xsec']
+            meta[sample]['nevents'] = samples[sample]['nevents']
 
         import matplotlib.pyplot as plt
         import mplhep as hep
