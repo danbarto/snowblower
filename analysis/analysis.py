@@ -19,7 +19,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class FlatProcessor(processor.ProcessorABC):
-    def __init__(self, accumulator={}):
+    def __init__(self, accumulator={}, effs={}):
         self._accumulator = processor.dict_accumulator({
             "met_pt": hist.Hist(
                 "Events",
@@ -158,6 +158,8 @@ class FlatProcessor(processor.ProcessorABC):
         })
         
         self.accumulator.update(processor.dict_accumulator( accumulator ))
+        
+        self.effs = effs  # NOTE need efficiencies for every sample!
 
     @property
     def accumulator(self):
@@ -171,17 +173,14 @@ class FlatProcessor(processor.ProcessorABC):
         #meta_accumulator stuff
         
         sumw = np.sum(events['genweight'])
-        #sumw2 = np.sum(events['genweight']**2)
-        #nevents = sum(events['genEventCount'])
+        sumw2 = np.sum(events['genweight']**2)
 
         output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
-        #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
-        #output[events.metadata['filename']]['nevents'] += nevents
+        output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
         output[events.metadata['filename']]['nChunk'] += 1
 
         output[dataset]['sumWeight'] += sumw
-        #output[dataset]['sumWeight2'] += sumw2
-        #output[dataset]['nevents'] += nevents
+        output[dataset]['sumWeight2'] += sumw2
         output[dataset]['nChunk'] += 1
         
         #define objects
@@ -265,9 +264,7 @@ class FlatProcessor(processor.ProcessorABC):
         #follow Delphes recommendations
         jet = jet[jet.pt > 30]
         jet = jet[jet.id > 0]
-        #eta within tracker range
-        jet = jet[np.abs(jet.eta) < 3]
-        
+        jet = jet[np.abs(jet.eta) < 3] #eta within tracker range
         jet = jet[~match(jet, electron, deltaRCut=0.4)] #remove electron overlap
         jet = jet[~match(jet, muon, deltaRCut=0.4)] #remove muon overlap
 
@@ -295,8 +292,7 @@ class FlatProcessor(processor.ProcessorABC):
         fatjet['tau3'] = events.fatjet_tau3
         fatjet['tau4'] = events.fatjet_tau4
         
-        #eta within tracker range
-        fatjet = fatjet[np.abs(fatjet.eta) < 3]
+        fatjet = fatjet[np.abs(fatjet.eta) < 3] #eta within tracker range
         fatjet = fatjet[ak.argsort(fatjet.pt, ascending=False)]
         
         fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
@@ -321,24 +317,25 @@ class FlatProcessor(processor.ProcessorABC):
                 
         #gen
         
-        #gen = get_four_vec_fromPtEtaPhiM(
-        #    None,
-        #    pt = events.genpart_pt,
-        #    eta = events.genpart_eta,
-        #    phi = events.genpart_phi,
-        #    M = events.genpart_mass,
-        #    copy = False,
-        #)
-        #gen['pdgId'] = events.genpart_pid
-        #gen['status'] = events.genpart_status
+        gen = get_four_vec_fromPtEtaPhiM(
+            None,
+            pt = events.genpart_pt,
+            eta = events.genpart_eta,
+            phi = events.genpart_phi,
+            M = events.genpart_mass,
+            copy = False,
+        )
+        gen['pdgId'] = events.genpart_pid
+        gen['status'] = events.genpart_status
 
-        #higgs = gen[(gen.pdgId==25)][:,-1:]  # only keep the last copy. status codes seem messed up?
+        higgs = ev.GenPart[((abs(ev.GenPart.pdgId)==25)&(ev.GenPart.status==62))]
 
-        #matched_jet = fatjet[match(fatjet, higgs, deltaRCut=0.8)]
+        bquark = ev.GenPart[((abs(ev.GenPart.pdgId)==5)&(ev.GenPart.status==71))]
         
-        #n_matched_jet = ak.num(matched_jet)
-        
-        #delta_r_lead_matched = delta_r_paf(matched_jet[:,0:1], lead_fatjet)   #just taking the first matched, in case there are multiple
+        nb_in_fat = match_count(fat, bquark, deltaRCut=0.8)
+        nhiggs_in_fat = match_count(fat, higgs, deltaRCut=0.8)
+        zerohiggs = (nhiggs_in_fat==0)
+        onehiggs = (nhiggs_in_fat==1)
       
         
         #MET
@@ -363,20 +360,20 @@ class FlatProcessor(processor.ProcessorABC):
         min_mt = ((min_mt_fj_met > 200) & on_h_sel)
         
         #weights
-        weight = Weights(len(met_pt))
-        weight.add(events.genweight)
+        weight = Weights(len(events))
+        weight.add("weight", events.genweight)
 
         #output
-        output['cutflow'][dataset]['total'] += len(met_pt)*weight.weight()
-        output['cutflow'][dataset]['n_ele==0'] += len(met_pt[ele_sel])*weight.weight()[ele_sel]
-        output['cutflow'][dataset]['n_mu==0'] += len(met_pt[mu_sel])*weight.weight()[mu_sel]
-        output['cutflow'][dataset]['n_tau==0'] += len(met_pt[baseline])*weight.weight()[baseline]
-        output['cutflow'][dataset]['met>200'] += len(met_pt[met_sel])*weight.weight()[met_sel]
-        output['cutflow'][dataset]['n_ak8>=1'] += len(met_pt[n_ak8])*weight.weight()[n_ak8]
-        output['cutflow'][dataset]['min_dphiFatJetMet4>0.5'] += len(met_pt[min_dphiFatJetMet4_sel])*weight.weight()[min_dphiFatJetMet4_sel]
-        output['cutflow'][dataset]['dphiDiFatJet<2.5'] += len(met_pt[dphiDiFatJet_sel])*weight.weight()[dphiDiFatJet_sel]
-        output['cutflow'][dataset]['on-H'] += len(met_pt[on_h_sel])*weight.weight()[on_h_sel]
-        output['cutflow'][dataset]['minmth>200'] += len(met_pt[min_mt])*weight.weight()[min_mt]
+        output['cutflow'][dataset]['total'] += sum(weight.weight())
+        output['cutflow'][dataset]['n_ele==0'] += sum(weight.weight()[ele_sel])
+        output['cutflow'][dataset]['n_mu==0'] += sum(weight.weight()[mu_sel])
+        output['cutflow'][dataset]['n_tau==0'] += sum(weight.weight()[baseline])
+        output['cutflow'][dataset]['met>200'] += sum(weight.weight()[met_sel])
+        output['cutflow'][dataset]['n_ak8>=1'] += sum(weight.weight()[n_ak8])
+        output['cutflow'][dataset]['min_dphiFatJetMet4>0.5'] += sum(weight.weight()[min_dphiFatJetMet4_sel])
+        output['cutflow'][dataset]['dphiDiFatJet<2.5'] += sum(weight.weight()[dphiDiFatJet_sel])
+        output['cutflow'][dataset]['on-H'] += sum(weight.weight()[on_h_sel])
+        output['cutflow'][dataset]['minmth>200'] += sum(weight.weight()[min_mt])
         
         output["met_pt"].fill(
             dataset=dataset,
@@ -451,22 +448,22 @@ class FlatProcessor(processor.ProcessorABC):
         output["lead_extrajet_pt"].fill(
             dataset=dataset,
             pt=ak.flatten(lead_extrajet.pt[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrajet)>0)]
         )
         output["lead_extrajet_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(lead_extrajet.eta[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrajet)>0)]
         )
         output["lead_extrajet_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(lead_extrajet.phi[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrajet)>0)]
         )
         output["lead_extrajet_mass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_extrajet.mass[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrajet)>0)]
         )
         output["nextrajet"].fill(
             dataset=dataset,
@@ -476,22 +473,22 @@ class FlatProcessor(processor.ProcessorABC):
         output["lead_extrabtag_pt"].fill(
             dataset=dataset,
             pt=ak.flatten(lead_extrabtag.pt[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrabtag)>0)]
         )
         output["lead_extrabtag_eta"].fill(
             dataset=dataset,
             eta=ak.flatten(lead_extrabtag.eta[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrabtag)>0)]
         )
         output["lead_extrabtag_phi"].fill(
             dataset=dataset,
             phi=ak.flatten(lead_extrabtag.phi[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrabtag)>0)]
         )
         output["lead_extrabtag_mass"].fill(
             dataset=dataset,
             mass=ak.flatten(lead_extrabtag.mass[min_mt], axis=1),
-            weight = weight.weight()[min_mt]
+            weight = weight.weight()[min_mt&(ak.num(extrabtag)>0)]
         )
         output["nextrabtag"].fill(
             dataset=dataset,
@@ -506,7 +503,7 @@ class FlatProcessor(processor.ProcessorABC):
         output["dphiDiFatJet"].fill(
             dataset=dataset,
             phi = ak.flatten(dphiDiFatJet[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200))]),
-            weight = weight.weight()[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200))]
+            weight = weight.weight()[(min_dphiFatJetMet4_sel & on_h & (min_mt_fj_met > 200)&(ak.num(fatjet)>1))]
         )
         output["min_dphiFatJetMet4"].fill(
             dataset=dataset,
@@ -600,17 +597,24 @@ if __name__ == '__main__':
             exe_args = {"schema": BaseSchema, "workers": 20}
         
         fileset = {
-            'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['ntuples'],
-            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['ntuples'],
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
-            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
-            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
-            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
+            'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['skim'],
+            'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['skim'],
+            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'], 
+            'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_350_MH2_1500_MHC_1500']['ntuples'],
@@ -627,7 +631,7 @@ if __name__ == '__main__':
 
         output_flat = processor.run_uproot_job(
             fileset,
-            treename='myana/mytree',
+            treename='mytree',
             processor_instance = FlatProcessor(accumulator=meta_accumulator),
             executor = exe,
             executor_args = exe_args,
@@ -640,7 +644,7 @@ if __name__ == '__main__':
         for sample in fileset:
             meta[sample] = output_flat[sample]
             meta[sample]['xsec'] = samples[sample]['xsec']
-            meta[sample]['nevents'] = samples[sample]['nevents']
+            #meta[sample]['nevents'] = samples[sample]['nevents']
 
         import matplotlib.pyplot as plt
         import mplhep as hep
@@ -664,6 +668,7 @@ if __name__ == '__main__':
         tau21_bins = hist.Bin("tau", "$\tau_4$", 50, 0, 1.0)
 
         labels ={
+            ('QCD_bEnriched_HT',): r'$QCD\ b-enriched (binned\ by\ HT)$',
             ('ZJetsToNuNu_HT',): r'$ZJets\to\nu\nu\ (binned\ by\ HT)$',
             ('WJetsToLNu_Njet',): r'$WJets\to L\nu\ (binned\ by\ N_{jets})$',
             ('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): r'$t\bar{t}$',
@@ -675,9 +680,10 @@ if __name__ == '__main__':
         }
 
         colors ={
-            ('ZJetsToNuNu_HT',): '#355C7D',
+            ('QCD_bEnriched_HT',): '#3FFED2',
+            ('ZJetsToNuNu_HT',): '#3F6BFE',
             ('WJetsToLNu_Njet',): '#FED23F',
-            ('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): '#EB7DB5',
+            ('TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',): '#FE3F6B',
         }
         
         signals = [
