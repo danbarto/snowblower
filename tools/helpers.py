@@ -93,9 +93,12 @@ def yahist_2D_lookup(h, ar1, ar2):
     takes a yahist 2D histogram (which has a lookup function) and an awkward array.
     '''
     return ak.unflatten(
-        h.lookup(
-            ak.to_numpy(ak.flatten(ar1)),
-            ak.to_numpy(ak.flatten(ar2)),
+        #np.nan_to_num(  # this is slow, but we have to take care of NaN
+            h.lookup(
+                ak.to_numpy(ak.flatten(ar1)),
+                ak.to_numpy(ak.flatten(ar2)),
+        #        ),
+        #    0,
         ), ak.num(ar1) )
 
 def build_weight_like(weight, selection, like):
