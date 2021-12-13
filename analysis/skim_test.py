@@ -534,23 +534,6 @@ if __name__ == '__main__':
             #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
             'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['ntuples'],
         }
-
-        meta_accumulator_skim = {}
-        for sample in fileset_skim:
-            if sample not in meta_accumulator_skim:
-                meta_accumulator_skim.update({sample: processor.defaultdict_accumulator(int)})
-            for f in fileset_skim[sample]:
-                meta_accumulator_skim.update({f: processor.defaultdict_accumulator(int)})
-
-        output_skim = processor.run_uproot_job(
-            fileset_skim,
-            treename='mytree',
-            processor_instance = FlatProcessor(accumulator=meta_accumulator_skim),
-            executor = exe,
-            executor_args = exe_args,
-            chunksize=1000000,
-            maxchunks=None,
-        )
         
         meta_accumulator_ntuples = {}
         for sample in fileset_ntuples:
@@ -563,6 +546,26 @@ if __name__ == '__main__':
             fileset_ntuples,
             treename='myana/mytree',
             processor_instance = FlatProcessor(accumulator=meta_accumulator_ntuples),
+            executor = exe,
+            executor_args = exe_args,
+            chunksize=1000000,
+            maxchunks=None,
+        )
+        
+        meta_accumulator_skim = {}
+        for sample in fileset_skim:
+            if sample not in meta_accumulator_skim:
+                meta_accumulator_skim.update({sample: processor.defaultdict_accumulator(int)})
+            for f in fileset_skim[sample]:
+                meta_accumulator_skim.update({f: processor.defaultdict_accumulator(int)})
+
+        exe = processor.futures_executor
+        exe_args = {"schema": BaseSchema, "workers": 20}
+        
+        output_skim = processor.run_uproot_job(
+            fileset_skim,
+            treename='mytree',
+            processor_instance = FlatProcessor(accumulator=meta_accumulator_skim),
             executor = exe,
             executor_args = exe_args,
             chunksize=1000000,

@@ -47,6 +47,15 @@ def getName( DAS ):
     else:
         return '_'.join(DAS.split('/')[-3:-1])
         #return'dummy'
+        
+def get_weight(effs, pt, eta):
+    # NOTE need to load the efficiencies. need 2d yahist lookup.
+    # needs to be done individually for each class of jets
+    return yahist_2D_lookup(
+        effs,
+        pt,
+        abs(eta),
+        )
 
 def dasWrapper(DASname, query='file'):
     sampleName = DASname.rstrip('/')
@@ -168,6 +177,11 @@ def match(first, second, deltaRCut=0.4):
     combs = ak.cartesian([first, second], nested=True)
     return ak.any((delta_r2(combs['0'], combs['1'])<drCut2), axis=2)
 
+def match_count(first, second, deltaRCut=0.4):
+    drCut2 = deltaRCut**2
+    combs = ak.cartesian([first, second], nested=True)
+    return ak.sum((delta_r2(combs['0'], combs['1'])<drCut2), axis=2)
+
 def mt(pt1, phi1, pt2, phi2):
     '''
     Calculate MT
@@ -188,7 +202,6 @@ def delta_r(first, second):
     return np.sqrt(delta_r2(first, second))
 
 def delta_phi_alt_paf(first, second):
-    # my version, seems to be faster (and unsigned)
     return np.arccos(np.cos(pad_and_flatten(first.phi) - pad_and_flatten(second.phi)))
                      
 def delta_r2_paf(first, second):

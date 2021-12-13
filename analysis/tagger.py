@@ -26,9 +26,9 @@ def match_count(first, second, deltaRCut=0.4):
     return ak.sum((delta_r2(combs['0'], combs['1'])<drCut2), axis=2)
 
 
-effs = {}
-for x in ['0b', '1b', '2b', '1h']:
-    effs[x] = Hist2D.from_json(os.path.expandvars("../data/htag/h_eff_tthbb_%s.json"%x))
+#effs = {}
+#for x in ['0b', '1b', '2b', '1h']:
+#    effs[x] = Hist2D.from_json(os.path.expandvars("../data/htag/h_eff_tthbb_%s.json"%x))
 
 
 def get_weight(effs, pt, eta):
