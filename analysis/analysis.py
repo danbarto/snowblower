@@ -19,6 +19,8 @@ from tools.helpers import choose, delta_phi_alt_paf, get_four_vec_fromPtEtaPhiM,
 import warnings
 warnings.filterwarnings("ignore")
 
+import shutil
+
 class FlatProcessor(processor.ProcessorABC):
     def __init__(self, accumulator={}, effs={}):
         self._accumulator = processor.dict_accumulator({
@@ -85,7 +87,7 @@ class FlatProcessor(processor.ProcessorABC):
             "nfatjet": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{fatjet}$", 5, 0.5, 5.5),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 5, -0.5, 4.5),
             ),
             "lead_extrajet_pt": hist.Hist(
                 "Events",
@@ -141,6 +143,21 @@ class FlatProcessor(processor.ProcessorABC):
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+            ),
+            "n_b_in_AK8": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
+            ),
+            "n_H_in_AK8": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
+            ),
+            "n_H_gen": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Bin("multiplicity", "$n_{H}$", 7, -0.5, 6.5),
             ),
             "dphiDiFatJet": hist.Hist(
                 "Events",
@@ -214,12 +231,12 @@ class FlatProcessor(processor.ProcessorABC):
             "nfatjet_tagged": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{fatjet}$", 5, 0.5, 5.5),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 5, -0.5, 4.5),
             ),
             "NH_weight": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{fatjet}$", 5, 0.5, 5.5),
+                hist.Bin("multiplicity", "$n_{fatjet}$", 5, -0.5, 4.5),
             ),
             "met_pt_tagged": hist.Hist(
                 "Events",
@@ -421,8 +438,8 @@ class FlatProcessor(processor.ProcessorABC):
         jet = jet[jet.pt > 30]
         jet = jet[jet.id > 0]
         jet = jet[np.abs(jet.eta) < 3] #eta within tracker range
-        jet = jet[~match(jet, electron, deltaRCut=0.4)] #remove electron overlap
-        jet = jet[~match(jet, muon, deltaRCut=0.4)] #remove muon overlap
+        jet = jet[~match(jet, ele_l, deltaRCut=0.4)] #remove electron overlap
+        jet = jet[~match(jet, muon_l, deltaRCut=0.4)] #remove muon overlap
 
         btag = jet[jet.btag>0] #loose wp for now
         
@@ -464,10 +481,10 @@ class FlatProcessor(processor.ProcessorABC):
         difatjet = choose(lead_fatjets, 2)
         dphiDiFatJet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
         
-        extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
+        extrajet  = jet[~match(jet, fatjet, deltaRCut=0.8)] # remove AK4 jets that overlap with AK8 jets
         extrabtag = extrajet[extrajet.btag>0] #loose wp for now]
-        extrajet = extrajet[ak.argsort(extrajet.pt, ascending=False)]
-        extrabtag = extrabtag[ak.argsort(extrabtag.pt, ascending=False)]
+        #extrajet = extrajet[ak.argsort(extrajet.pt, ascending=False)]
+        #extrabtag = extrabtag[ak.argsort(extrabtag.pt, ascending=False)]
         lead_extrajet = extrajet[:,0:1]
         lead_extrabtag = extrabtag[:,0:1]
         dphileadextrajet = delta_phi_alt_paf(lead_fatjet, lead_extrajet)
@@ -486,9 +503,11 @@ class FlatProcessor(processor.ProcessorABC):
         gen['pdgId'] = events.genpart_pid
         gen['status'] = events.genpart_status
 
-        higgs = gen[((abs(gen.pdgId)==25)&(gen.status==62))]
+        #higgs = gen[((abs(gen.pdgId)==25)&(gen.status==62))]
+        higgs = gen[(abs(gen.pdgId)==25)][:,-1:]  # just get the last Higgs. Delphes is not keeping all the higgses.
 
-        bquark = gen[((abs(gen.pdgId)==5)&(gen.status==71))]
+        bquark = gen[((abs(gen.pdgId)==5)&(gen.status==71))]  # I suspect that Delphes does not keep b's with pt less than 20?
+        # so in rare occasions you'll only have one b with status 71
         
         nb_in_fat = match_count(fatjet, bquark, deltaRCut=0.8)
         nhiggs_in_fat = match_count(fatjet, higgs, deltaRCut=0.8)
@@ -525,7 +544,7 @@ class FlatProcessor(processor.ProcessorABC):
         mu_sel = ((ak.num(muon_l)==0) & ele_sel)
         tau_sel = ((ak.num(tau_l)==0) & mu_sel)
         met_sel = (tau_sel & (met_pt>200))
-        baseline = ((ak.num(fatjet)>0) & met_sel)
+        baseline = ((ak.num(fatjet, axis=1)>0) & met_sel)
         min_dphiFatJetMet4_sel = ak.to_numpy((min_dphiFatJetMet4 > 0.5) & baseline)
         dphiDiFatJet_sel = ak.to_numpy((ak.all(dphiDiFatJet < 2.5, axis=1) & min_dphiFatJetMet4_sel))
         on_h_sel = ak.to_numpy(on_h & dphiDiFatJet_sel)
@@ -689,6 +708,16 @@ class FlatProcessor(processor.ProcessorABC):
         output["njet"].fill(
             dataset=dataset,
             multiplicity=ak.num(jet[baseline]),
+            #weight = weight.weight()[baseline]
+        )
+        output["n_b_in_AK8"].fill(
+            dataset=dataset,
+            multiplicity=ak.flatten(nb_in_fat),
+            #weight = weight.weight()[baseline]
+        )
+        output["n_H_in_AK8"].fill(
+            dataset=dataset,
+            multiplicity=ak.flatten(nhiggs_in_fat),
             #weight = weight.weight()[baseline]
         )
         output["met_pt_tagged"].fill(
@@ -984,7 +1013,7 @@ if __name__ == '__main__':
         import mplhep as hep
         plt.style.use(hep.style.CMS)
 
-        N_bins = hist.Bin('multiplicity', r'$N$', 5, 0.5, 5.5)
+        N_bins = hist.Bin('multiplicity', r'$N$', 5, -0.5, 4.5)
         N_bins2 = hist.Bin('multiplicity', r'$N$', 7, 0.5, 7.5)
         mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 40, 0, 400)
         mass_bins2 = hist.Bin('mass', r'$M\ (GeV)$', 6, 0, 60)

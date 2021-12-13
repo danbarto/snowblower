@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 from coffea import hist
 from yahist import Hist1D, Hist2D
+import shutil
+
 
 import re
 
@@ -119,6 +121,12 @@ signal_fill_opts = {
 
 import mplhep as hep
 plt.style.use(hep.style.CMS)
+
+def finalizePlotDir( path ):
+    path = os.path.expandvars(path)
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    shutil.copy( os.path.expandvars( '$TWHOME/tools/php/index.php' ), path )
 
 def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False, save=False, axis_label=None, ratio_range=None, upHists=[], downHists=[], shape=False, ymax=False, new_colors=colors, new_labels=my_labels, order=None, signals=[], omit=[], lumi=60.0, binwnorm=None, overlay=None, is_data=True, y_axis_label='Events', rescale={}, obs_label='Observation'):
     
@@ -274,7 +282,9 @@ def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False,
         print ("Figure saved in:", save)
 
 
-def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
+def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
+              signals=[],
+              plot_dir = '/home/users/$USER/public_html/HbbMET/background/'):
         histos = {}
         
         tmp1 = output[histo].copy()
@@ -333,7 +343,10 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors, signals=[]):
         ax.set_yscale('log')
         ax.legend(prop={'size': 10})
 
-        fig.savefig('/home/users/ewallace/public_html/HbbMET/background/'+str(histo)+'_3.png')
+        plot_dir = os.path.expandvars(plot_dir)
+        finalizePlotDir(plot_dir)
+        fig.savefig(plot_dir+str(histo)+'.png')
+        fig.savefig(plot_dir+str(histo)+'.pdf')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -399,11 +412,33 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     
     # merge according to categories:
     mapping = {
-        'ZJetsToNuNu_HT': ['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU', 'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU'],
-        'WJetsToLNu_Njet': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU'],
+        'ZJetsToNuNu_HT': [
+            'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+        ],
+        'WJetsToLNu_Njet': [
+            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        ],
         #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
-        'QCD_bEnriched_HT': ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU'],
-        'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'],
+        'QCD_bEnriched_HT': [
+            'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        ],
+        'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': [
+            'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'],
