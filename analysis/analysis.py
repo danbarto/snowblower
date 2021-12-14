@@ -14,7 +14,7 @@ ak.behavior.update(candidate.behavior)
 from functools import partial
 
 from plots.helpers import makePlot2, scale_and_merge_histos
-from tools.helpers import choose, delta_phi_alt_paf, get_four_vec_fromPtEtaPhiM, get_weight, match, match_count, mt
+from tools.helpers import choose, delta_phi_alt_paf, get_four_vec_fromPtEtaPhiM, get_weight, match, match_count, mt, cross
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -488,6 +488,10 @@ class FlatProcessor(processor.ProcessorABC):
         lead_extrajet = extrajet[:,0:1]
         lead_extrabtag = extrabtag[:,0:1]
         dphileadextrajet = delta_phi_alt_paf(lead_fatjet, lead_extrajet)
+        di_AK8_AK4 = cross(extrajet, fatjet)
+        dphi_AK8_AK4 = np.arccos(np.cos(di_AK8_AK4['0'].phi-di_AK8_AK4['1'].phi))
+        min_dphi_AK8_AK4 = ak.min(dphi_AK8_AK4, axis=1)
+        #dphi_AK8_AK4 = delta_phi_alt(extrajet[:,:1], fatjet[:,:1])  # we don't care about the non-leading ones
         
                 
         #gen
@@ -642,7 +646,7 @@ class FlatProcessor(processor.ProcessorABC):
         )
         output["dphileadextrajet"].fill(
             dataset=dataset,
-            phi = ak.to_numpy(dphileadextrajet[baseline]),
+            phi = ak.to_numpy(min_dphi_AK8_AK4[baseline]),
             #weight = weight.weight()[baseline]
         )
         output["min_dphiFatJetMet4"].fill(
@@ -933,7 +937,7 @@ if __name__ == '__main__':
             'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'], 
+            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],

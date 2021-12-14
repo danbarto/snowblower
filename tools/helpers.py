@@ -30,6 +30,13 @@ def choose(first, n=2):
         combs[str(i)] = tmp[str(i)]
     return combs
 
+def cross(first, second):
+    tmp = ak.cartesian([first, second])
+    combs = (tmp['0'] + tmp['1'])
+    combs['0'] = tmp['0']
+    combs['1'] = tmp['1']
+    return combs
+
 def get_samples(f_in='samples.yaml'):
     with open(data_path+f_in) as f:
         return load(f, Loader=Loader)
