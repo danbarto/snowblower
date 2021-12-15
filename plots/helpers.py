@@ -299,7 +299,6 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
                 #errors = np.sqrt(tmp1.sum('pt', 'dataset', overflow = 'all').values(sumw2=True, overflow = 'all')[()][1].T),
             )
             histos[sample] = h1
-        
 
         edge = list(keys)[0]
         
@@ -321,8 +320,9 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
                 [histos[sample].counts for sample in backgrounds],
                 histos[edge].edges,
                 #w2=[(hists[x].errors)**2 for x in keys ],
-                histtype="fill",
-                stack=True,
+                histtype="step",
+                density = True,
+                stack=False,
                 label=[labels[sample] for sample in backgrounds],
                 color=[colors[sample] for sample in backgrounds],
                 ax=ax
@@ -333,6 +333,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
             histos[edge].edges,
             #w2=[(hists[x].errors)**2 for x in keys ],
             histtype="step",
+            density = True,
             stack=False,
             label=[labels[sample] for sample in signals],
             ax=ax
@@ -439,9 +440,18 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
         'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
         ],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'
+        ],
     }
     temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), mapping)
                 

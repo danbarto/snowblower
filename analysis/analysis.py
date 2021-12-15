@@ -112,7 +112,7 @@ class FlatProcessor(processor.ProcessorABC):
             "nextrajet": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "lead_extrabtag_pt": hist.Hist(
                 "Events",
@@ -137,12 +137,12 @@ class FlatProcessor(processor.ProcessorABC):
             "nextrabtag": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "njet": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "n_b_in_AK8": hist.Hist(
                 "Events",
@@ -276,7 +276,7 @@ class FlatProcessor(processor.ProcessorABC):
             "nextrajet_tagged": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "lead_extrabtag_pt_tagged": hist.Hist(
                 "Events",
@@ -301,12 +301,12 @@ class FlatProcessor(processor.ProcessorABC):
             "nextrabtag_tagged": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "njet_tagged": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
-                hist.Bin("multiplicity", "$n_{jet}$", 7, 0.5, 7.5),
+                hist.Bin("multiplicity", "$n_{jet}$", 7, -0.5, 6.5),
             ),
             "dphileadextrajet_tagged": hist.Hist(
                 "Events",
@@ -1018,7 +1018,7 @@ if __name__ == '__main__':
         plt.style.use(hep.style.CMS)
 
         N_bins = hist.Bin('multiplicity', r'$N$', 5, -0.5, 4.5)
-        N_bins2 = hist.Bin('multiplicity', r'$N$', 7, 0.5, 7.5)
+        N_bins2 = hist.Bin('multiplicity', r'$N$', 7, -0.5, 6.5)
         mass_bins = hist.Bin('mass', r'$M\ (GeV)$', 40, 0, 400)
         mass_bins2 = hist.Bin('mass', r'$M\ (GeV)$', 6, 0, 60)
         ht_bins = hist.Bin('pt', r'$H_{T}\ (GeV)$', 60, 0, 3000)
@@ -1068,61 +1068,66 @@ if __name__ == '__main__':
             cloudpickle.dump(scaled_output, fout)
         print('Done!')
         
-        #need to add order to the plots
-        makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau21', 'tau', tau21_bins, r'$\tau_{2}/\tau_{1}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nfatjet', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_pt', 'pt', pt_bins2, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_mass', 'mass', mass_bins2, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nextrajet', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_pt', 'pt', pt_bins2, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_eta', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_phi', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_mass', 'mass', mass_bins2, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nextrabtag', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'njet', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'ht', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'dphiDiFatJet', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjets)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'dphileadextrajet', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjets)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_dphiFatJetMet4', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ fatjets,\ MET)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_dphiJetMetAll', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ fatjets,\ MET)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_mt_fj_met', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals=signals)
+        plot_dir = '/home/users/$USER/public_html/HbbMET/background/shape_'
         
-        makePlot2(scaled_output, 'met_pt_tagged', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_pt_tagged', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_eta_tagged', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_phi_tagged', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_sdmass_tagged', 'mass', mass_bins, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau1_tagged', 'tau', tau1_bins, r'$\tau_1$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau2_tagged', 'tau', tau2_bins, r'$\tau_2$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau3_tagged', 'tau', tau3_bins, r'$\tau_3$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau4_tagged', 'tau', tau4_bins, r'$\tau_4$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_fatjet_tau21_tagged', 'tau', tau21_bins, r'$\tau_{2}/\tau_{1}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nfatjet_tagged', 'multiplicity', N_bins, r'$n_{fatjet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_pt_tagged', 'pt', pt_bins2, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_eta_tagged', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_phi_tagged', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrajet_mass_tagged', 'mass', mass_bins2, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nextrajet_tagged', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_pt_tagged', 'pt', pt_bins2, r'$p_{T}\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_eta_tagged', 'eta', eta_bins, r'$\eta$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_phi_tagged', 'phi', phi_bins, r'$\phi$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'lead_extrabtag_mass_tagged', 'mass', mass_bins2, r'$mass\ (GeV)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'nextrabtag_tagged', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'njet_tagged', 'multiplicity', N_bins2, r'$n_{jet}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'ht_tagged', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'dphiDiFatJet_tagged', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjets)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'dphileadextrajet_tagged', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ fatjets)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_dphiFatJetMet4_tagged', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ fatjets,\ MET)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_dphiJetMetAll_tagged', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ fatjets,\ MET)$', labels, colors, signals=signals)
-        makePlot2(scaled_output, 'min_mt_fj_met_tagged', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals=signals)
+        #need to add order to the plots
+        makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_pt', 'pt', pt_bins, r'$p_{T}\ (lead\ AK8)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_eta', 'eta', eta_bins, r'$\eta\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_phi', 'phi', phi_bins, r'$\phi\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_sdmass', 'mass', mass_bins, r'$mass\ (lead\ AK8)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau1', 'tau', tau1_bins, r'$\tau_1\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau2', 'tau', tau2_bins, r'$\tau_2\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau3', 'tau', tau3_bins, r'$\tau_3\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau4', 'tau', tau4_bins, r'$\tau_4\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau21', 'tau', tau21_bins, r'$\tau_{2}/\tau_{1}\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nfatjet', 'multiplicity', N_bins, r'$n_{AK8}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_pt', 'pt', pt_bins2, r'$p_{T}\ (lead\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_eta', 'eta', eta_bins, r'$\eta\ (lead\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_phi', 'phi', phi_bins, r'$\phi\ (lead\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_mass', 'mass', mass_bins2, r'$mass\ (lead\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nextrajet', 'multiplicity', N_bins2, r'$n_{AK4}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_pt', 'pt', pt_bins2, r'$p_{T}\ (lead\ b-tagged\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_eta', 'eta', eta_bins, r'$\eta\ (lead\ b-tagged\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_phi', 'phi', phi_bins, r'$\phi\ (lead\ b-tagged\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_mass', 'mass', mass_bins2, r'$mass\ (lead\ b-tagged\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nextrabtag', 'multiplicity', N_bins2, r'$n_{b-tagged\ AK4}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'njet', 'multiplicity', N_bins2, r'$n_{AK4}\ (inclusive)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'ht', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'dphiDiFatJet', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ AK8,\ sublead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'dphileadextrajet', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ AK8,\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_dphiFatJetMet4', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ four\ AK8,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_dphiJetMetAll', 'phi', phi_bins2, r'$min\ \Delta\phi\ (AK4,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_mt_fj_met', 'mt', mt_bins, r'$min\ M_{T}(AK8\ on\ H-mass,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'n_b_in_AK8', 'multiplicity', N_bins2, r'$n_{b\ in\ AK8}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'n_H_in_AK8', 'multiplicity', N_bins2, r'$n_{b\ in\ AK8}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_bins, r'$n_{H}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        
+        makePlot2(scaled_output, 'met_pt_tagged', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_pt_tagged', 'pt', pt_bins, r'$p_{T}\ (lead\ AK8)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_eta_tagged', 'eta', eta_bins, r'$\eta\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_phi_tagged', 'phi', phi_bins, r'$\phi\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_sdmass_tagged', 'mass', mass_bins, r'$mass\ (lead\ AK8)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau1_tagged', 'tau', tau1_bins, r'$\tau_1\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau2_tagged', 'tau', tau2_bins, r'$\tau_2\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau3_tagged', 'tau', tau3_bins, r'$\tau_3\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau4_tagged', 'tau', tau4_bins, r'$\tau_4\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_fatjet_tau21_tagged', 'tau', tau21_bins, r'$\tau_{2}/\tau_{1}\ (lead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nfatjet_tagged', 'multiplicity', N_bins, r'$n_{AK8}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_pt_tagged', 'pt', pt_bins2, r'$p_{T}\ (lead\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_eta_tagged', 'eta', eta_bins, r'$\eta\ (lead\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_phi_tagged', 'phi', phi_bins, r'$\phi\ (lead\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrajet_mass_tagged', 'mass', mass_bins2, r'$mass\ (lead\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nextrajet_tagged', 'multiplicity', N_bins2, r'$n_{AK4}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_pt_tagged', 'pt', pt_bins2, r'$p_{T}\ (lead\ b-tagged\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_eta_tagged', 'eta', eta_bins, r'$\eta\ (lead\ b-tagged\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_phi_tagged', 'phi', phi_bins, r'$\phi\ (lead\ b-tagged\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'lead_extrabtag_mass_tagged', 'mass', mass_bins2, r'$mass\ (lead\ b-tagged\ AK4)\ (GeV)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'nextrabtag_tagged', 'multiplicity', N_bins2, r'$n_{b-tagged\ AK4}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'njet_tagged', 'multiplicity', N_bins2, r'$n_{AK4}\ (inclusive)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'ht_tagged', 'pt', ht_bins, r'$H_{T}$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'dphiDiFatJet_tagged', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ AK8,\ sublead\ AK8)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'dphileadextrajet_tagged', 'phi', phi_bins2, r'$\Delta\phi\ (lead\ AK8,\ AK4)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_dphiFatJetMet4_tagged', 'phi', phi_bins2, r'$min\ \Delta\phi\ (lead\ four\ AK8,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_dphiJetMetAll_tagged', 'phi', phi_bins2, r'$min\ \Delta\phi\ (AK4,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
+        makePlot2(scaled_output, 'min_mt_fj_met_tagged', 'mt', mt_bins, r'$min\ M_{T}(AK8\ on\ H-mass,\ MET)$', labels, colors, signals=signals, plot_dir=plot_dir)
