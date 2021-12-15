@@ -13,8 +13,8 @@ ak.behavior.update(candidate.behavior)
 
 from functools import partial
 
-from plots.helpers import makePlot2, scale_and_merge_histos
-from tools.helpers import choose, delta_phi_alt_paf, get_four_vec_fromPtEtaPhiM, get_weight, match, match_count, mt, cross
+from plots.helpers import makePlot2, scale_and_merge_histos, formatting
+from tools.helpers import choose, get_four_vec_fromPtEtaPhiM, get_weight, match, match_count, mt, cross
 
 import warnings
 warnings.filterwarnings("ignore")

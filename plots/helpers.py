@@ -503,3 +503,7 @@ def bin_text(counts, x_edges, y_edges, axes, cbar, errors=None, size=10, fmt=":0
         )
 
     return
+
+def formatting(c, ce):
+    out = "{:2g} \n $\pm${:.2f}".format(c, ce)
+    return out

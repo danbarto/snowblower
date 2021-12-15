@@ -78,22 +78,13 @@ def finalizePlotDir( path ):
         os.makedirs(path)
     shutil.copy( os.path.expandvars( '$TWHOME/Tools/php/index.php' ), path )
 
-#def pad_and_flatten(val): 
-#    import awkward as ak
-#    try:
-#        return ak.flatten(ak.fill_none(ak.pad_none(val, 1, clip=True), 0))
-        #return val.pad(1, clip=True).fillna(0.).flatten()#.reshape(-1, 1)
-#    except ValueError:
-#        return ak.flatten(val)
-    
 def pad_and_flatten(val): 
     import awkward as ak
     try:
-        return ak.flatten(ak.pad_none(val, 1, clip=True))
+        return ak.flatten(ak.fill_none(ak.pad_none(val, 1, clip=True), 0))
         #return val.pad(1, clip=True).fillna(0.).flatten()#.reshape(-1, 1)
     except ValueError:
         return ak.flatten(val)
-
 
 def yahist_1D_lookup(h, ar):
     '''
@@ -207,12 +198,3 @@ def delta_r2(first, second):
 
 def delta_r(first, second):
     return np.sqrt(delta_r2(first, second))
-
-def delta_phi_alt_paf(first, second):
-    return np.arccos(np.cos(pad_and_flatten(first.phi) - pad_and_flatten(second.phi)))
-                     
-def delta_r2_paf(first, second):
-    return (pad_and_flatten(first.eta) - pad_and_flatten(second.eta))**2 + delta_phi_alt_paf(first, second)**2
-
-def delta_r_paf(first, second):
-    return np.sqrt(delta_r2_paf(first, second))
