@@ -296,7 +296,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
             h1 = Hist1D.from_bincounts(
                 tmp1.values(overflow = 'all')[sample].T,
                 (tmp1.axis(axis).edges(overflow = 'all')),
-                #errors = np.sqrt(tmp1.sum('pt', 'dataset', overflow = 'all').values(sumw2=True, overflow = 'all')[()][1].T),
+                errors = np.sqrt(tmp1.values(sumw2=True, overflow = 'all')[sample][1].T),
             )
             histos[sample] = h1
 
@@ -320,9 +320,9 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
                 [histos[sample].counts for sample in backgrounds],
                 histos[edge].edges,
                 #w2=[(hists[x].errors)**2 for x in keys ],
-                histtype="step",
-                density = True,
-                stack=False,
+                histtype="fill",
+                density = False,
+                stack=True,
                 label=[labels[sample] for sample in backgrounds],
                 color=[colors[sample] for sample in backgrounds],
                 ax=ax
@@ -331,9 +331,9 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         hep.histplot(
             [histos[sample].counts for sample in signals],
             histos[edge].edges,
-            #w2=[(hists[x].errors)**2 for x in keys ],
+            w2=[(histos[sample].errors)**2 for sample in signals],
             histtype="step",
-            density = True,
+            density = False,
             stack=False,
             label=[labels[sample] for sample in signals],
             ax=ax
@@ -347,7 +347,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         plot_dir = os.path.expandvars(plot_dir)
         finalizePlotDir(plot_dir)
         fig.savefig(plot_dir+str(histo)+'.png')
-        fig.savefig(plot_dir+str(histo)+'.pdf')
+        #fig.savefig(plot_dir+str(histo)+'.pdf')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -503,7 +503,3 @@ def bin_text(counts, x_edges, y_edges, axes, cbar, errors=None, size=10, fmt=":0
         )
 
     return
-
-def formatting(c, ce):
-    out = "{:2g} \n $\pm${:.2f}".format(c, ce)
-    return out
