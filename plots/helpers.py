@@ -296,10 +296,9 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
             h1 = Hist1D.from_bincounts(
                 tmp1.values(overflow = 'all')[sample].T,
                 (tmp1.axis(axis).edges(overflow = 'all')),
-                #errors = np.sqrt(tmp1.sum('pt', 'dataset', overflow = 'all').values(sumw2=True, overflow = 'all')[()][1].T),
+                errors = np.sqrt(tmp1.values(sumw2=True, overflow = 'all')[sample][1].T),
             )
             histos[sample] = h1
-        
 
         edge = list(keys)[0]
         
@@ -322,6 +321,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
                 histos[edge].edges,
                 #w2=[(hists[x].errors)**2 for x in keys ],
                 histtype="fill",
+                density = False,
                 stack=True,
                 label=[labels[sample] for sample in backgrounds],
                 color=[colors[sample] for sample in backgrounds],
@@ -331,8 +331,9 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         hep.histplot(
             [histos[sample].counts for sample in signals],
             histos[edge].edges,
-            #w2=[(hists[x].errors)**2 for x in keys ],
+            w2=[(histos[sample].errors)**2 for sample in signals],
             histtype="step",
+            density = False,
             stack=False,
             label=[labels[sample] for sample in signals],
             ax=ax
@@ -346,7 +347,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         plot_dir = os.path.expandvars(plot_dir)
         finalizePlotDir(plot_dir)
         fig.savefig(plot_dir+str(histo)+'.png')
-        fig.savefig(plot_dir+str(histo)+'.pdf')
+        #fig.savefig(plot_dir+str(histo)+'.pdf')
         
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
@@ -436,12 +437,21 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
-        'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': [
+        'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
         ],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'],
-        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': ['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'
+        ],
     }
     temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), mapping)
                 
