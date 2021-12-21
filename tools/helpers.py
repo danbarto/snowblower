@@ -37,6 +37,74 @@ def cross(first, second):
     combs['1'] = tmp['1']
     return combs
 
+def cutflow_scale_and_merge(cutflow, samples, fileset, lumi=3000):
+    """
+    Scale cutflow to a physical cross section.
+    Merge sample cutflows into categories, e.g. several ttZ cutflows into one ttZ category.
+    
+    cutflow -- output coffea accumulator
+    samples -- samples dictionary that contains the x-sec and sumWeight
+    fileset -- fileset dictionary used in the coffea processor
+    lumi -- integrated luminosity in 1/fb
+    """
+    mapping = {
+        'ZJetsToNuNu_HT': [
+            'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+        ],
+        'WJetsToLNu_Njet': [
+            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        ],
+        #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
+        'QCD_bEnriched_HT': [
+            'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        ],
+        'TT': [
+            'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        ],
+        '2HDMa_1500_750': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_1750_750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'
+        ],
+        '2HDMa_2000_750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'
+        ],
+    }
+    
+    merged = {}
+   
+    for group in mapping:
+        combined = {}
+        for sample in mapping[group]:
+            if sample in fileset:
+                temp = cutflow[sample].copy()
+                scale = lumi*1000*samples[sample]['xsec']/samples[sample]['nevents']
+                # scale according to cross sections
+                for key in temp.keys():
+                    temp[key] *= scale
+                combined += temp
+        merged[group] = combined
+                   
+    return merged
+
 def get_samples(f_in='samples.yaml'):
     with open(data_path+f_in) as f:
         return load(f, Loader=Loader)
@@ -117,6 +185,35 @@ def fill_multiple(hist, datasets=[], arrays={}, selections=[], weights=[]):
         kw_dict.update({x:arrays[x][selections[i]] for x in arrays.keys()})
         hist.fill(**kw_dict)
 
+def getCutFlowTable(output, processes, lines, significantFigures=3, absolute=True, signal=None, total=False):
+    '''
+    Takes the output of a coffea processor (i.e. a python dictionary) and returns a formated cut-flow table of processes.
+    Lines and processes have to follow the naming of the coffea processor output.
+    '''
+    res = {}
+    eff = {}
+    for proc in processes:
+        res[proc] = {line: "%s +/- %s"%(round(output[proc][line], significantFigures-len(str(int(output[proc][line])))), round(math.sqrt(output[proc][line+'_w2']), significantFigures-len(str(int(output[proc][line]))))) for line in lines}
+        
+        # for efficiencies. doesn't deal with uncertainties yet
+        eff[proc] = {lines[i]: round(output[proc][lines[i]]/output[proc][lines[i-1]], significantFigures) if (i>0 and output[proc][lines[i-1]]>0) else 1. for i,x in enumerate(lines)}
+    
+    if total:
+        res['total'] = {line: "%s"%round( sum([ output[proc][line] for proc in total ] ), significantFigures-len(str(int(sum([ output[proc][line] for proc in total ] ))))) for line in lines }
+    
+    # if a signal is specified, calculate S/B
+    if signal is not None:
+        backgrounds = copy.deepcopy(processes)
+        for s in signal:
+            backgrounds.remove(s)
+        res['S/B'] = {line: round( sum([output[s][line] for s in signal])/sum([ output[proc][line] for proc in backgrounds ]) if sum([ output[proc][line] for proc in backgrounds ])>0 else 1, significantFigures) for line in lines }
+            
+    if not absolute:
+        res=eff
+    df = pd.DataFrame(res)
+    df = df.reindex(lines) # restores the proper order
+    return df
+        
 def get_four_vec(cand):
     from coffea.nanoevents.methods import vector
     ak.behavior.update(vector.behavior)
