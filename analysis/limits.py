@@ -327,17 +327,17 @@ class FlatProcessor(processor.ProcessorABC):
                     if tagger == '_0b_down':
                          w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*0.95
                     if tagger == '_1b_up':
-                         w_0b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*1.05
+                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*1.05
                     if tagger == '_1b_down':
-                         w_0b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*0.95
+                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*0.95
                     if tagger == '_2b_up':
-                         w_0b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*1.05
+                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*1.05
                     if tagger == '_2b_down':
-                         w_0b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*0.95
+                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*0.95
                     if tagger == '_1h_up':
-                         w_0b = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*1.05
+                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*1.05
                     if tagger == '_1h_down':
-                         w_0b = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*0.95
+                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*0.95
 
                     w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
                     if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
