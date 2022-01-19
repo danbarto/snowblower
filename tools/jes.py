@@ -9,13 +9,14 @@ import numpy as np
 
 class JES:
 
-    def __init__(self):
+    def __init__(self, verbose=True):
 
         # NOTE file from here: https://twiki.cern.ch/twiki/bin/view/CMS/YR2018Systematics
         # some details in here: https://twiki.cern.ch/twiki/pub/CMS/YR2018Systematics/ATLASsystematics.pdf
         jes_file      = os.path.expandvars("$TWHOME/data/jme/HL_YR_JEC.root")
-
-        print ("Loading JES file: %s"%jes_file)
+        
+        if verbose:
+            print ("Loading JES file: %s"%jes_file)
 
         self.ext = extractor()
         # several histograms can be imported at once using wildcards (*)

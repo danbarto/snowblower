@@ -57,10 +57,7 @@ def cutflow_scale_and_merge(cutflow, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
         ],
         'WJetsToLNu_Njet': [
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
         #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
         'QCD_bEnriched_HT': [
@@ -74,6 +71,10 @@ def cutflow_scale_and_merge(cutflow, samples, fileset, lumi=3000):
         ],
         'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        ],
+        '2HDMa_1500_150': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500'
         ],
         '2HDMa_1500_750': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
