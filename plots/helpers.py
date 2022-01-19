@@ -281,74 +281,24 @@ def makePlot(output, histo, axis, bins=None, data=[], normalize=True, log=False,
         fig.savefig("{}.png".format(save))
         print ("Figure saved in:", save)
 
+def get_total(histos, keys):
+        tmp = Hist1D.from_bincounts(np.zeros(len(histos[keys[0]].counts)), histos[keys[0]].edges, )
+        for key in keys:
+            tmp += histos[key]
+        return tmp
 
-def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
-              signals=[],
-              plot_dir = '/home/users/$USER/public_html/HbbMET/background/'):
-        histos = {}
-        
-        tmp1 = output[histo].copy()
-        tmp1 = tmp1.rebin(axis, bins)
-        
-        keys = tmp1.values().keys()
-                
-        for sample in keys:
-            h1 = Hist1D.from_bincounts(
-                tmp1.values(overflow = 'all')[sample].T,
-                (tmp1.axis(axis).edges(overflow = 'all')),
-                errors = np.sqrt(tmp1.values(sumw2=True, overflow = 'all')[sample][1].T),
-            )
-            histos[sample] = h1
-
-        edge = list(keys)[0]
-        
-        backgrounds = []
-        for sample in keys:
-            if sample not in signals:
-                backgrounds += (sample,)
-           
-        fig, (ax) = plt.subplots(figsize=(10,10))
-        hep.cms.label(
-            'Preliminary',
-            loc=0,
-            ax=ax,
-            #lumi = 3000,
-            rlabel = '14 TeV',
-        )
-        if backgrounds != []:
-            hep.histplot(
-                [histos[sample].counts for sample in backgrounds],
-                histos[edge].edges,
-                #w2=[(hists[x].errors)**2 for x in keys ],
-                histtype="fill",
-                density = False,
-                stack=True,
-                label=[labels[sample] for sample in backgrounds],
-                color=[colors[sample] for sample in backgrounds],
-                ax=ax
-            )
-        
-        hep.histplot(
-            [histos[sample].counts for sample in signals],
-            histos[edge].edges,
-            w2=[(histos[sample].errors)**2 for sample in signals],
-            histtype="step",
-            density = False,
-            stack=False,
-            label=[labels[sample] for sample in signals],
-            ax=ax
-        )
-        
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(r'Events')
-        ax.set_yscale('log')
-        ax.legend(prop={'size': 10})
-
-        plot_dir = os.path.expandvars(plot_dir)
-        finalizePlotDir(plot_dir)
-        fig.savefig(plot_dir+str(histo)+'.png')
-        #fig.savefig(plot_dir+str(histo)+'.pdf')
-        
+def add_uncertainty(hist, ax, ratio=False):
+    opts = {'step': 'post', 'label': 'Uncertainty', 'hatch': '///',
+                    'facecolor': 'none', 'edgecolor': (0, 0, 0, .5), 'linewidth': 0, 'zorder':10.}
+    
+    if ratio:
+        down = np.ones(len(hist.counts)) - hist.errors/hist.counts
+        up = np.ones(len(hist.counts)) + hist.errors/hist.counts
+    else:
+        down = hist.counts-hist.errors
+        up = hist.counts+hist.errors
+    ax.fill_between(x=hist.edges, y1=np.r_[down, down[-1]], y2=np.r_[up, up[-1]], **opts)
+    
 def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over', rebin=False, ratio=False, scales={}):
     
     if rebin:
@@ -392,7 +342,77 @@ def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over'
                     'facecolor': 'none', 'edgecolor': (0, 0, 0, .5), 'linewidth': 0, 'zorder':100.}
     
     ax.fill_between(x=bins, y1=np.r_[down, down[-1]], y2=np.r_[up, up[-1]], **opts)
+    
+def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
+              signals=[],
+              plot_dir = '/home/users/$USER/public_html/HbbMET/background/'):
+        histos = {}
+        
+        tmp1 = output[histo].copy()
+        tmp1 = tmp1.rebin(axis, bins)
+        
+        keys = tmp1.values().keys()
+                
+        for sample in keys:
+            h1 = Hist1D.from_bincounts(
+                tmp1.values(overflow = 'all')[sample].T,
+                (tmp1.axis(axis).edges(overflow = 'all')),
+                errors = np.sqrt(tmp1.values(sumw2=True, overflow = 'all')[sample][1].T),
+            )
+            histos[sample] = h1
 
+        edge = list(keys)[0]
+        
+        backgrounds = []
+        for sample in keys:
+            if sample not in signals:
+                backgrounds += (sample,)
+           
+        total_mc = get_total(histos, backgrounds)
+        
+        fig, (ax) = plt.subplots(figsize=(10,10))
+        hep.cms.label(
+            'Preliminary',
+            loc=0,
+            ax=ax,
+            #lumi = 3000,
+            rlabel = '14 TeV',
+        )
+        if backgrounds != []:
+            hep.histplot(
+                [histos[sample].counts for sample in backgrounds],
+                histos[edge].edges,
+                #w2=[(hists[x].errors)**2 for x in keys ],
+                histtype="fill",
+                density = False,
+                stack=True,
+                label=[labels[sample] for sample in backgrounds],
+                color=[colors[sample] for sample in backgrounds],
+                ax=ax
+            )
+        
+        hep.histplot(
+            [histos[sample].counts for sample in signals[1:]],
+            histos[edge].edges,
+            w2=[(histos[sample].errors)**2 for sample in signals[1:]],
+            histtype="step",
+            density = False,
+            stack=False,
+            label=[labels[sample] for sample in signals[1:]],
+            ax=ax
+        )
+        
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(r'Events')
+        ax.set_yscale('log')
+        ax.legend(prop={'size': 10})
+        
+        add_uncertainty(total_mc, ax, ratio=True)
+
+        plot_dir = os.path.expandvars(plot_dir)
+        finalizePlotDir(plot_dir)
+        fig.savefig(plot_dir+str(histo)+'.png')
+        #fig.savefig(plot_dir+str(histo)+'.pdf')
 
 def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     """
@@ -422,10 +442,11 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
         ],
         'WJetsToLNu_Njet': [
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
         #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
         'QCD_bEnriched_HT': [
@@ -439,6 +460,10 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
         ],
         'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500'
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
