@@ -75,6 +75,7 @@ def get_sample_info(name, delphes_path='root://cmseos.fnal.gov//store/user/snowm
     results['gen'] = das_wrapper(snowmass_das, query='') + das_wrapper(phase2_das, query='')
 
     gen_files = das_wrapper(results['gen'][0], query='file')
+    print (gen_files)
     xsec, unc = get_xsec(gen_files[0])
     results['xsec'] = xsec
     results['xsec_sigma'] = unc
@@ -162,10 +163,11 @@ if __name__ == '__main__':
             ##'TTZToLLNuNu_M-10_TuneCP5_14TeV-amcatnlo-pythia8_200PU',
             #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
             #'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
@@ -173,6 +175,9 @@ if __name__ == '__main__':
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
             #'ttHTobb_M125_TuneCUETP8M2_14TeV-powheg-pythia8_200PU',
+            #'/WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8',
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',  # NOTE: GEN samples deleted?
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
         ]
 
         try:
@@ -208,7 +213,7 @@ if __name__ == '__main__':
             with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
-    if True:
+    if False:
         for sample in database.keys():
         #for sample in ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
             try:
@@ -219,7 +224,7 @@ if __name__ == '__main__':
                 with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
-    if True:
+    if False:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
             database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v12/'%sample)
             #print (sample)
