@@ -16,21 +16,36 @@ import os
 def submit():
 
     requests = {
-        '2HDMa_bb_1250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_bb_1600_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
-        '2HDMa_bb_1900_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_bb_2250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_gg_1250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_gg_1600_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
-        '2HDMa_gg_1900_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_gg_2250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+	'2HDMa_bb_1000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        '2HDMa_bb_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        '2HDMa_gg_1000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        '2HDMa_gg_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+         
+	#'2HDMa_bb_1600_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        #'2HDMa_bb_1900_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_bb_2250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_1600_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        #'2HDMa_gg_1900_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_2250_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+	#'2HDMa_bb_1250_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_bb_1600_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_bb_1750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_1250_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_1600_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_1750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+	#'2HDMa_bb_1900_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_bb_2000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_bb_2250_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_1900_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_2000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        #'2HDMa_gg_2250_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
  }
 
     total_summary = {}
 
     extra_requirements = "true"
 
-    tag = "v5"
+    tag = "v6"
     #events_per_point = 500000 # produced 500k events before
     #events_per_job = 2000 # up to 2000 works
     events_per_point = 500000
