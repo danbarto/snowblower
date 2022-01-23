@@ -75,6 +75,7 @@ def get_sample_info(name, delphes_path='root://cmseos.fnal.gov//store/user/snowm
     results['gen'] = das_wrapper(snowmass_das, query='') + das_wrapper(phase2_das, query='')
 
     gen_files = das_wrapper(results['gen'][0], query='file')
+    #print (gen_files)
     xsec, unc = get_xsec(gen_files[0])
     results['xsec'] = xsec
     results['xsec_sigma'] = unc
@@ -141,7 +142,7 @@ if __name__ == '__main__':
 
         all_samples = gfal_wrapper('root://cmseos.fnal.gov//store/user/snowmass/Snowmass2021/Delphes/', abs_path=False)
         print ("Found the following samples:")
-        print (all_samples)
+        print (sorted(all_samples))
         test = get_sample_info(all_samples[0])
 
     else:
@@ -162,10 +163,11 @@ if __name__ == '__main__':
             ##'TTZToLLNuNu_M-10_TuneCP5_14TeV-amcatnlo-pythia8_200PU',
             #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
             #'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
-            'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
@@ -173,6 +175,20 @@ if __name__ == '__main__':
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
             #'ttHTobb_M125_TuneCUETP8M2_14TeV-powheg-pythia8_200PU',
+            #'/WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8',
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
+            #'tZq_nunu_4f_14TeV-amcatnlo-madspin-pythia8_200PU',  # Ignore because of NLO weights
+            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU',
+            'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+            'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+            'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
+            #'TTZToLLNuNu_M-10_TuneCP5_14TeV-amcatnlo-pythia8_200PU', ## Deleted?
+            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
+            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
+            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+            #'ST_s-channel_4f_InclusiveDecays_14TeV-amcatnlo-pythia8_200PU',  # Ignore because of NLO weights
         ]
 
         try:
@@ -203,30 +219,37 @@ if __name__ == '__main__':
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU'] = {}
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['delphes'] = []
             database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['ntuples'] = tt_files
-            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['xsec'] = 900 # FIXME
+            database['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['xsec'] = 984.5
 
             with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
-    if True:
-        for sample in database.keys():
+    if False:  # NOTE: We don't care about nevents anymore. skims with version > 15 have counter histograms in them
+        for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
         #for sample in ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
             try:
                 nevents = database[sample]['nevents']
             except KeyError:
-                database[sample]['nevents'] = get_nevents(database[sample]['ntuples'])
+                database[sample]['nevents'] = get_nevents(database[sample]['ntuples']) # NOTE: not necessary anymore
 
                 with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
     if True:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
-            database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v12/'%sample)
+            #database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v16/'%sample)
+            database[sample]['skim'] = glob.glob('/hadoop/cms/store/user/dspitzba/ProjectMetis/merge_%s_v16/*.root'%sample)
             #print (sample)
             # NOTE need to get the skim directory.
             # Something like
             # gfal-ls root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_v12/
             # Then verify that they are actually working
+        with open('../data/samples.yaml', 'w') as f:
+            yaml.dump(database, f, Dumper=Dumper)
+
+    if True:  # NOTE: modify some of the x-secs
+        database['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['xsec'] = 71370
+        database['TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU']['xsec'] = 26.48 # NOTE: 24.23 scaled by 1.093
         with open('../data/samples.yaml', 'w') as f:
             yaml.dump(database, f, Dumper=Dumper)
 

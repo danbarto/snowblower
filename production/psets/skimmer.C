@@ -6,6 +6,7 @@
 #include "TTree.h"
 #include "TLeaf.h"
 #include "TString.h"
+#include "TH1F.h"
 //#include "TSeq.h"
 
 void skimmer(TString file_path="", TString out_path="")
@@ -71,7 +72,8 @@ void skimmer(TString file_path="", TString out_path="")
            }
        }
 
-       if ((n_elec_loose+n_muon_loose)==0 && oldtree->GetLeaf("metpuppi_pt")->GetValue() > 100) {
+       //if ((n_elec_loose+n_muon_loose)==0 && oldtree->GetLeaf("metpuppi_pt")->GetValue() > 100) {
+       if (oldtree->GetLeaf("metpuppi_pt")->GetValue() > 100) {
            pass = true;
        }
 
@@ -86,6 +88,9 @@ void skimmer(TString file_path="", TString out_path="")
 
    cout << "Skim efficiency:" << endl;
    cout << (newtree->GetEntries() / float(nentries)) << endl;
+
+   TH1* h = new TH1F("nevents", "nevents", 1, 0, 1);
+   h->SetBinContent(1, nentries);
 
    newfile.Write();
 }

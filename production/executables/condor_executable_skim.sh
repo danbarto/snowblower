@@ -92,13 +92,34 @@ mv psets/run_skimmer.py ../
 
 cd ../
 
-echo "Transfering file"
-xrdcp $INPUTFILENAMES input.root
+IFS=',' read -r -a array <<< "$INPUTFILENAMES"
 
-echo "Before running"
-pwd
-ls -la
-python run_skimmer.py input.root ${OUTPUTNAME}.root
+for f in ${array[@]}
+do
+  echo "Processing $f"
+  OUTFILETMP="$(basename $f)"
+  echo "Transfering file"
+  xrdcp $f $OUTFILETMP
+
+  echo "Before running"
+  pwd
+
+  ls -la
+
+
+  export REP=".root"
+  OUTFILETMP2="${OUTFILETMP/$REP/_out.root}"
+
+  python run_skimmer.py ${OUTFILETMP} ${OUTFILETMP2}
+
+  rm ${OUTFILETMP}
+ # do something on $f
+done
+
+
+NEWINPUTS=`ls *_out.root`
+
+hadd ${OUTPUTNAME}.root $NEWINPUTS
 
 echo "After running"
 pwd

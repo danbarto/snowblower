@@ -35,6 +35,7 @@ mt_bins = hist.Bin('mt', r'$M_{T}\ (GeV)$', 9, 600, 2400)
 pt_bins = hist.Bin('pt', r'$p_{T}\ (GeV)$', 40, 200, 1200)
 pt_bins2 = hist.Bin('pt', r'$p_{T}\ (GeV)$', 50, 0, 500)
 met_bins = hist.Bin('pt', r'$MET_{pt}\ (GeV)$', 18, 100, 1000)
+met_bins_ext = hist.Bin('pt', r'$MET_{pt}\ (GeV)$', 20, 0, 1000)
 eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
 phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
 phi_bins2 = hist.Bin("phi", "$\phi$", 16, 0, 4)
@@ -55,10 +56,30 @@ class FlatProcessor(processor.ProcessorABC):
                 # we don't use a lambda function to avoid pickle issues
                 partial(processor.defaultdict_accumulator, int)
             ),
+            "Mtt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                ht_bins,
+            ),
+            "Mtt_inclusive": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                ht_bins,
+            ),
             "met_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 met_bins,
+            ),
+            "genmet_pt": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                met_bins_ext,
+            ),
+            "genmet_pt_inclusive": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                met_bins_ext,
             ),
             #"met_pt_BL": hist.Hist(
             #    "Events",
@@ -116,6 +137,16 @@ class FlatProcessor(processor.ProcessorABC):
             #    hist.Cat("dataset", "Dataset"),
             #    mass_bins,
             #),
+            "MT": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+            ),
+            "MT_single_lep": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+            ),
             "AK8_sdmass": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
@@ -185,18 +216,17 @@ class FlatProcessor(processor.ProcessorABC):
         sumw = np.sum(events['genweight'])
         sumw2 = np.sum(events['genweight']**2)
 
-        output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
-        output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
-        output[events.metadata['filename']]['nChunk'] += 1
+        #output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
+        #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
+        #output[events.metadata['filename']]['nChunk'] += 1
 
-        output[dataset]['sumWeight'] += sumw
-        output[dataset]['sumWeight2'] += sumw2
-        output[dataset]['nChunk'] += 1
+        #output[dataset]['sumWeight'] += sumw
+        #output[dataset]['sumWeight2'] += sumw2
+        #output[dataset]['nChunk'] += 1
         
         #define objects
         
         #electrons
-                
         electron = get_four_vec_fromPtEtaPhiM(
             None,
             pt = events.elec_pt,
@@ -207,12 +237,10 @@ class FlatProcessor(processor.ProcessorABC):
         )
         electron['id'] = events.elec_idpass  # > 0 should be loose
         electron['iso'] = events.elec_isopass
-        #electron['charge'] = events.elec_charge
 
         ele_l = electron[((electron['id']>0)&(electron['iso']>0)&(electron.pt>10)&(np.abs(electron.eta)<3))]
         
         #muons
-        
         muon = get_four_vec_fromPtEtaPhiM(
             None,
             pt = events.muon_pt,
@@ -223,12 +251,10 @@ class FlatProcessor(processor.ProcessorABC):
         )
         muon['id'] = events.muon_idpass  # > 0 should be loose
         muon['iso'] = events.muon_isopass
-        #muon['charge'] = events.muon_charge
 
         muon_l = muon[((muon['id']>0)&(muon['iso']>0)&(muon.pt>4)&(np.abs(muon.eta)<2.8))]
         
         #taus
-        
         tau = get_four_vec_fromPtEtaPhiM(
             None,
             pt = events.tau_pt,
@@ -238,7 +264,6 @@ class FlatProcessor(processor.ProcessorABC):
             copy = False,
         )
         tau['iso'] = events.tau_isopass   # > 0 should be loose
-        #tau['charge'] = events.tau_charge
 
         tau_l = tau[((tau['iso']>0)&(tau.pt>30)&(np.abs(tau.eta)<3))]
         
@@ -258,7 +283,6 @@ class FlatProcessor(processor.ProcessorABC):
         #gamma_l = gamma[((gamma['id']>0)&(gamma['iso']>0)&(gamma.pt>20)&(np.abs(gamma.eta)<3))]
         
         #gen
-        
         gen = get_four_vec_fromPtEtaPhiM(
             None,
             pt = events.genpart_pt,
@@ -275,8 +299,12 @@ class FlatProcessor(processor.ProcessorABC):
 
         bquark = gen[((abs(gen.pdgId)==5)&(gen.status==71))]  # I suspect that Delphes does not keep b's with pt less than 20?
         # so in rare occasions you'll only have one b with status 71
+
+        top = gen[gen.pdgId==6][:,-2:-1]
+        atop = gen[gen.pdgId==-6][:,-2:-1]
         
         dibquark = choose(bquark, 2)
+        ttbar = ak.flatten(cross(top, atop))
         b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
         
         variations = ['central']
@@ -352,6 +380,7 @@ class FlatProcessor(processor.ProcessorABC):
             #MET
 
             met_pt = ak.flatten(events.metpuppi_pt)
+            genmet_pt = ak.flatten(events.genmet_pt)
             met_phi = ak.flatten(events.metpuppi_phi)
 
             mt_AK8_MET = mt(fatjet.pt, fatjet.phi, met_pt, met_phi)
@@ -364,6 +393,18 @@ class FlatProcessor(processor.ProcessorABC):
             #selections
             selection = PackedSelection()
 
+            if dataset == 'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU':
+                selection.add('overlap', (ttbar.mass>1000))
+            elif dataset == 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU':
+                selection.add('overlap', (ttbar.mass<1000))
+            elif dataset == 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
+                selection.add('overlap', genmet_pt>100)
+            elif dataset == 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
+                selection.add('overlap', genmet_pt<100)
+            else:
+                selection.add('overlap', met_pt>0) # NOTE: this is a dummy selection that should always evaluate to true
+
+            selection.add('single_lep', ((ak.num(ele_l, axis=1)>0) | (ak.num(muon_l, axis=1)>0) | (ak.num(tau_l, axis=1)>0)))
             selection.add('ele_veto', ak.num(ele_l, axis=1)==0)
             selection.add('mu_veto',  ak.num(muon_l, axis=1)==0)
             selection.add('tau_veto', ak.num(tau_l, axis=1)==0)
@@ -389,6 +430,7 @@ class FlatProcessor(processor.ProcessorABC):
             #outputs
 
             baseline = [
+                'overlap',
                 'ele_veto',
                 'mu_veto',
                 'tau_veto',
@@ -397,9 +439,27 @@ class FlatProcessor(processor.ProcessorABC):
             ]
 
             tight = [
+                'overlap',
                 'ele_veto',
                 'mu_veto',
                 'tau_veto',
+                'met',
+                'nAK8',
+                'nAK4',
+                'min_AK8_pt',
+                'dphi_AK8_MET>1',
+                'dphi_AK4_MET<3',
+                'dphi_AK4_MET>1',
+                'AK4_QCD_veto',
+                'AK8_QCD_veto',
+                'on_H',
+                'MT>600',
+                'MT>1200',
+            ]
+
+            single_lep = [
+                'overlap',
+                'single_lep',
                 'met',
                 'nAK8',
                 'nAK4',
@@ -451,23 +511,41 @@ class FlatProcessor(processor.ProcessorABC):
 
             tmp_base_sel = n_minus_one(selection, baseline, ['met'])
             tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-            #output["met_pt_BL"].fill(
-            #    dataset=dataset,
-            #    pt=met_pt[tmp_base_sel],
-            #    weight = weight.weight()[tmp_base_sel]
-            #)
             output["met_pt"].fill(
                 dataset=dataset,
                 pt=met_pt[tmp_sel],
                 weight = weight.weight()[tmp_sel]
             )
 
+            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+            output["genmet_pt"].fill(
+                dataset=dataset,
+                pt=genmet_pt[tmp_sel],
+                weight = weight.weight()[tmp_sel]
+            )
+
+#            tmp_sel = n_minus_one(selection, baseline, ['met', 'nAK8', 'overlap'])
+            output["genmet_pt_inclusive"].fill(
+                dataset=dataset,
+                pt=genmet_pt,
+                weight = weight.weight()
+            )
+
+            if dataset.count('TT_'):
+                tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+                output["Mtt"].fill(
+                    dataset=dataset,
+                    pt=ttbar.mass[tmp_sel],
+                    weight = weight.weight()[tmp_sel]
+                )
+                tmp_sel = n_minus_one(selection, baseline, ['overlap'])
+                output["Mtt_inclusive"].fill(
+                    dataset=dataset,
+                    pt=ttbar.mass[tmp_sel],
+                    weight = weight.weight()[tmp_sel]
+                )
+
             tmp_sel = n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'MT>1200'])
-            #output["dphi_AK8_MET_BL"].fill(
-            #    dataset=dataset,
-            #    phi=min_dphi_AK8_MET[base_sel],
-            #    weight = weight.weight()[base_sel]
-            #)
             output["dphi_AK8_MET"].fill(
                 dataset=dataset,
                 phi=min_dphi_AK8_MET[tmp_sel],
@@ -475,11 +553,6 @@ class FlatProcessor(processor.ProcessorABC):
             )
 
             tmp_sel = n_minus_one(selection, tight, ['dphi_AK4_MET<3', 'dphi_AK4_MET>1', 'MT>1200'])
-            #output["dphi_AK4_MET_BL"].fill(
-            #    dataset=dataset,
-            #    phi=min_dphi_AK4_MET[base_sel],
-            #    weight = weight.weight()[base_sel]
-            #)
             output["dphi_AK4_MET"].fill(
                 dataset=dataset,
                 phi=min_dphi_AK4_MET[tmp_sel],
@@ -487,11 +560,6 @@ class FlatProcessor(processor.ProcessorABC):
             )
 
             tmp_sel = n_minus_one(selection, tight, ['AK4_QCD_veto', 'MT>1200'])
-            #output["AK4_QCD_veto_BL"].fill(
-            #    dataset=dataset,
-            #    phi=ak.flatten(dphi_dijet[base_sel & (ak.num(jet)>1)][:,0:1]),
-            #    weight = weight.weight()[base_sel & (ak.num(jet)>1)]
-            #)
             output["AK4_QCD_veto"].fill(
                 dataset=dataset,
                 phi=ak.flatten(dphi_dijet[tmp_sel & (ak.num(jet)>1)][:,0:1]),
@@ -499,11 +567,6 @@ class FlatProcessor(processor.ProcessorABC):
             )
 
             tmp_sel = n_minus_one(selection, tight, ['AK8_QCD_veto', 'MT>1200'])
-            #output["AK8_QCD_veto_BL"].fill(
-            #    dataset=dataset,
-            #    phi=ak.flatten(dphi_difatjet[base_sel & (ak.num(fatjet)>1)][:,0:1]),
-            #    weight = weight.weight()[base_sel & (ak.num(fatjet)>1)]
-            #)
             output["AK8_QCD_veto"].fill(
                 dataset=dataset,
                 phi=ak.flatten(dphi_difatjet[tmp_sel & (ak.num(fatjet)>1)][:,0:1]),
@@ -511,11 +574,6 @@ class FlatProcessor(processor.ProcessorABC):
             )
 
             tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
-            #output["AK8_sdmass_BL"].fill(
-            #    dataset=dataset,
-            #    mass=ak.flatten(lead_fatjet.mass[base_sel]),
-            #    weight = weight.weight()[base_sel]
-            #)
             output["AK8_sdmass"].fill(
                 dataset=dataset,
                 mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
@@ -536,11 +594,6 @@ class FlatProcessor(processor.ProcessorABC):
             #)
 
             tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
-            #output["n_AK4_BL"].fill(
-            #    dataset=dataset,
-            #    multiplicity=ak.num(jet[base_sel]),
-            #    weight = weight.weight()[base_sel]
-            #)
             output["n_AK4"].fill(
                 dataset=dataset,
                 multiplicity=ak.num(jet[tmp_sel]),
@@ -548,11 +601,6 @@ class FlatProcessor(processor.ProcessorABC):
             )
 
             tmp_sel = n_minus_one(selection, tight, ['min_AK8_pt', 'MT>1200'])
-            #output["min_AK8_pt_BL"].fill(
-            #    dataset=dataset,
-            #    pt=ak.min(fatjet.pt[base_sel], axis=1),
-            #    weight = weight.weight()[base_sel]
-            #)
             output["min_AK8_pt"].fill(
                 dataset=dataset,
                 pt=ak.min(fatjet.pt[tmp_sel], axis=1),
@@ -570,7 +618,19 @@ class FlatProcessor(processor.ProcessorABC):
             #    dataset=dataset,
             #    multiplicity = np.ones_like(ak.num(fatjet[base_sel], axis=1)),
             #    weight = np.nan_to_num(1-ak.prod(1-w_all[base_sel], axis=1), 0),
-            #) 
+            #)
+
+            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>600', 'MT>1200'])
+            output['MT'].fill(
+                dataset=dataset,
+                mt = min_mt_AK8_MET[tmp_sel],
+            )
+            tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
+            output['MT_single_lep'].fill(
+                dataset=dataset,
+                mt = min_mt_AK8_MET[tmp_sel],
+            )
+
             tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
             output['NH_weight'].fill(
                 dataset=dataset,
@@ -669,7 +729,7 @@ if __name__ == '__main__':
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
-             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
         }
@@ -683,6 +743,7 @@ if __name__ == '__main__':
 
         run2_to_delphes = {
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU': 'TT_Mtt-1000toInf_TuneCP5_13TeV-powheg-pythia8',
             'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8',
             'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8',
             'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8',
@@ -690,6 +751,7 @@ if __name__ == '__main__':
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8',
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
             'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8',
             'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8', 
             'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8',
@@ -697,6 +759,18 @@ if __name__ == '__main__':
             'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT300to500_TuneCP5_13TeV-madgraph-pythia8',
             'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT500to700_TuneCP5_13TeV-madgraph-pythia8',
             'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT700to1000_TuneCP5_13TeV-madgraph-pythia8',
+            # Some of the rare samples don't exist in UL18 (which is bad just by itself)
+            # but what can we do.
+            # W+jets should be as close as it gets for the extra radiation for diboson
+            # signal sample for the SM Higgs samples
+            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
+            'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_t-channel_top_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8',
+            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8',
+            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8',
+            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',

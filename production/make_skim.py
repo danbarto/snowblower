@@ -23,24 +23,38 @@ def submit():
     sample_names = list(samples.keys())
 
     sample_names = [
-        #'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+        'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
         #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-        #'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
-        #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
-        #'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
-        #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
-        #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
-        #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+        'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+        'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU',
+        'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+        'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU',
+        'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
+        'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
+        'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+        'tZq_nunu_4f_14TeV-amcatnlo-madspin-pythia8_200PU',
+        'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU',
+        'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+        'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+        'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
+        #'TTZToLLNuNu_M-10_TuneCP5_14TeV-amcatnlo-pythia8_200PU',
+        'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
+        'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
+        'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+        'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+        'ST_s-channel_4f_InclusiveDecays_14TeV-amcatnlo-pythia8_200PU',
      ]
 
 
@@ -48,7 +62,10 @@ def submit():
 
     extra_requirements = "true"
 
-    tag = "v12"
+    tag = "v16"
+    # v15 - use for everything but tt+jets and W+jets
+    # v16 - lepton veto removed in skim
+
 
     skim_tasks = []
     merge_tasks = []
@@ -67,9 +84,9 @@ def submit():
         skim_task = CondorTask(
                 sample = sample,
                 output_name = "skim.root",
-                executable = "executables/condor_executable_skim_eos.sh",
-                #executable = "executables/condor_executable_skim.sh",
-                output_dir = "/eos/user/d/dspitzba/snowblower_data/%s_%s/"%(s, tag),
+                #executable = "executables/condor_executable_skim_eos.sh",
+                executable = "executables/condor_executable_skim.sh",
+                #output_dir = "/eos/user/d/dspitzba/snowblower_data/%s_%s/"%(s, tag),
                 tarfile = "package.tar.gz",
                 open_dataset = False,
                 files_per_output = 10,  # was 50 for everything but ttbar
@@ -85,7 +102,7 @@ def submit():
                     "requirements_line": 'Requirements = (HAS_SINGULARITY=?=True)'  # && (HAS_CVMFS_cms_cern_ch =?= true) && {extra_requirements})'.format(extra_requirements=extra_requirements),
                     },
                 tag = tag,
-                min_completion_fraction = 1.0,
+                min_completion_fraction = 0.98,
                 )
 
         skim_tasks.append(skim_task)
@@ -97,12 +114,12 @@ def submit():
                     #use_xrootd = True,
                 ),
                 output_name = "merge.root",
-                executable = "executables/condor_executable_merge_eos.sh",
-                #executable = "executables/condor_executable_merge.sh",
+                #executable = "executables/condor_executable_merge_eos.sh",
+                executable = "executables/condor_executable_merge.sh",
                 tarfile = "package.tar.gz",
-                output_dir = "/eos/user/d/dspitzba/snowblower_data/merge_%s_%s/"%(s, tag),
+                #output_dir = "/eos/user/d/dspitzba/snowblower_data/merge_%s_%s/"%(s, tag),
                 open_dataset = False,
-                files_per_output = 50,  # was 10 for everything but ttbar
+                files_per_output = 10,  # was 10 for everything but ttbar
                 cmssw_version = "CMSSW_10_6_19",
                 scram_arch = "slc7_amd64_gcc820",
                 condor_submit_params = {
@@ -139,7 +156,7 @@ def submit():
 
         #print (test.get_files())
 
-        if frac >= skim_task.min_completion_fraction-0.1:
+        if frac >= (skim_task.min_completion_fraction-0.0001):
             print ("merging now")
             merge_task.reset_io_mapping()
             merge_task.update_mapping()
