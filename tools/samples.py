@@ -235,7 +235,7 @@ if __name__ == '__main__':
                 with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
-    if False:
+    if True:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
             #database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v16/'%sample)
             database[sample]['skim'] = glob.glob('/hadoop/cms/store/user/dspitzba/ProjectMetis/merge_%s_v16/*.root'%sample)
@@ -247,9 +247,11 @@ if __name__ == '__main__':
         with open('../data/samples.yaml', 'w') as f:
             yaml.dump(database, f, Dumper=Dumper)
 
-    if False:  # NOTE: modify some of the x-secs
+    if True:  # NOTE: modify some of the x-secs
         database['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['xsec'] = 71370
-        database['TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU']['xsec'] = 0 # NOTE: scaled by 1.093
+        database['TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU']['xsec'] = 26.48 # NOTE: 24.23 scaled by 1.093
+        with open('../data/samples.yaml', 'w') as f:
+            yaml.dump(database, f, Dumper=Dumper)
 
 
     test_merge = False
