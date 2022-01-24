@@ -52,75 +52,75 @@ def n_minus_one(selection, requirements, minus_one):
 class FlatProcessor(processor.ProcessorABC):
     def __init__(self, accumulator={}, effs={}):
         self._accumulator = processor.dict_accumulator({
-            'cutflow': processor.defaultdict_accumulator(
+            #'cutflow': processor.defaultdict_accumulator(
                 # we don't use a lambda function to avoid pickle issues
-                partial(processor.defaultdict_accumulator, int)
-            ),
-            "Mtt": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                ht_bins,
-            ),
-            "Mtt_inclusive": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                ht_bins,
-            ),
-            "met_pt": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                met_bins,
-            ),
-            "genmet_pt": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                met_bins_ext,
-            ),
-            "genmet_pt_inclusive": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                met_bins_ext,
-            ),
+            #    partial(processor.defaultdict_accumulator, int)
+            #),
+            #"Mtt": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    ht_bins,
+            #),
+            #"Mtt_inclusive": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    ht_bins,
+            #),
+            #"met_pt": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    met_bins,
+            #),
+            #"genmet_pt": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    met_bins_ext,
+            #),
+            #"genmet_pt_inclusive": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    met_bins_ext,
+            #),
             #"met_pt_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    met_bins,
             #),
-            "dphi_AK4_MET": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                phi_bins2,
-            ),
+            #"dphi_AK4_MET": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    phi_bins2,
+            #),
             #"dphi_AK4_MET_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    phi_bins2,
             #),
-            "dphi_AK8_MET": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                phi_bins2,
-            ),
+            #"dphi_AK8_MET": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    phi_bins2,
+            #),
             #"dphi_AK8_MET_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    phi_bins2,
             #),
-            "AK4_QCD_veto": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                phi_bins2,
-            ),
+            #"AK4_QCD_veto": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    phi_bins2,
+            #),
             #"AK4_QCD_veto_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    phi_bins2,
             #),
-            "AK8_QCD_veto": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                phi_bins2,
-            ),
+            #"AK8_QCD_veto": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    phi_bins2,
+            #),
             #"AK8_QCD_veto_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
@@ -137,57 +137,57 @@ class FlatProcessor(processor.ProcessorABC):
             #    hist.Cat("dataset", "Dataset"),
             #    mass_bins,
             #),
-            "MT": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                mt_bins,
-            ),
-            "MT_single_lep": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                mt_bins,
-            ),
-            "AK8_sdmass": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                mass_bins,
-            ),
+            #"MT": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    mt_bins,
+            #),
+            #"MT_single_lep": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    mt_bins,
+            #),
+            #"AK8_sdmass": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    mass_bins,
+            #),
             #"n_AK4_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    N_bins2,
             #),
-            "n_AK4": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                N_bins2,
-            ),
+            #"n_AK4": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    N_bins2,
+            #),
             #"min_AK8_pt_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    pt_bins,
             #),
-            "min_AK8_pt": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                pt_bins,
-            ),
+            #"min_AK8_pt": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    pt_bins,
+            #),
             #"NH_weight_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
             #    N_H_bins,
             #),
-            "NH_weight": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                N_H_bins,
-            ),
-            "b_DeltaR_vs_H_pt_BL": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                pt_bins,
-                phi_bins2,
-            ),
+            #"NH_weight": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    N_H_bins,
+            #),
+            #"b_DeltaR_vs_H_pt_BL": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    pt_bins,
+            #    phi_bins2,
+            #),
             "b_DeltaR_vs_H_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
@@ -509,76 +509,76 @@ class FlatProcessor(processor.ProcessorABC):
             output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
             
 
-            tmp_base_sel = n_minus_one(selection, baseline, ['met'])
-            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-            output["met_pt"].fill(
-                dataset=dataset,
-                pt=met_pt[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_base_sel = n_minus_one(selection, baseline, ['met'])
+            #tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+            #output["met_pt"].fill(
+            #    dataset=dataset,
+            #    pt=met_pt[tmp_sel],
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-            output["genmet_pt"].fill(
-                dataset=dataset,
-                pt=genmet_pt[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+            #output["genmet_pt"].fill(
+            #    dataset=dataset,
+            #    pt=genmet_pt[tmp_sel],
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
 #            tmp_sel = n_minus_one(selection, baseline, ['met', 'nAK8', 'overlap'])
-            output["genmet_pt_inclusive"].fill(
-                dataset=dataset,
-                pt=genmet_pt,
-                weight = weight.weight()
-            )
+            #output["genmet_pt_inclusive"].fill(
+            #    dataset=dataset,
+            #    pt=genmet_pt,
+            #    weight = weight.weight()
+            #)
 
-            if dataset.count('TT_'):
-                tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-                output["Mtt"].fill(
-                    dataset=dataset,
-                    pt=ttbar.mass[tmp_sel],
-                    weight = weight.weight()[tmp_sel]
-                )
-                tmp_sel = n_minus_one(selection, baseline, ['overlap'])
-                output["Mtt_inclusive"].fill(
-                    dataset=dataset,
-                    pt=ttbar.mass[tmp_sel],
-                    weight = weight.weight()[tmp_sel]
-                )
+            #if dataset.count('TT_'):
+            #    tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+            #    output["Mtt"].fill(
+            #        dataset=dataset,
+            #        pt=ttbar.mass[tmp_sel],
+            #        weight = weight.weight()[tmp_sel]
+            #    )
+            #    tmp_sel = n_minus_one(selection, baseline, ['overlap'])
+            #    output["Mtt_inclusive"].fill(
+            #        dataset=dataset,
+            #        pt=ttbar.mass[tmp_sel],
+            #        weight = weight.weight()[tmp_sel]
+            #    )
 
-            tmp_sel = n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'MT>1200'])
-            output["dphi_AK8_MET"].fill(
-                dataset=dataset,
-                phi=min_dphi_AK8_MET[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'MT>1200'])
+            #output["dphi_AK8_MET"].fill(
+            #    dataset=dataset,
+            #    phi=min_dphi_AK8_MET[tmp_sel],
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['dphi_AK4_MET<3', 'dphi_AK4_MET>1', 'MT>1200'])
-            output["dphi_AK4_MET"].fill(
-                dataset=dataset,
-                phi=min_dphi_AK4_MET[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['dphi_AK4_MET<3', 'dphi_AK4_MET>1', 'MT>1200'])
+            #output["dphi_AK4_MET"].fill(
+            #    dataset=dataset,
+            #    phi=min_dphi_AK4_MET[tmp_sel],
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['AK4_QCD_veto', 'MT>1200'])
-            output["AK4_QCD_veto"].fill(
-                dataset=dataset,
-                phi=ak.flatten(dphi_dijet[tmp_sel & (ak.num(jet)>1)][:,0:1]),
-                weight = weight.weight()[tmp_sel & (ak.num(jet)>1)]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['AK4_QCD_veto', 'MT>1200'])
+            #output["AK4_QCD_veto"].fill(
+            #    dataset=dataset,
+            #    phi=ak.flatten(dphi_dijet[tmp_sel & (ak.num(jet)>1)][:,0:1]),
+            #    weight = weight.weight()[tmp_sel & (ak.num(jet)>1)]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['AK8_QCD_veto', 'MT>1200'])
-            output["AK8_QCD_veto"].fill(
-                dataset=dataset,
-                phi=ak.flatten(dphi_difatjet[tmp_sel & (ak.num(fatjet)>1)][:,0:1]),
-                weight = weight.weight()[tmp_sel & (ak.num(fatjet)>1)]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['AK8_QCD_veto', 'MT>1200'])
+            #output["AK8_QCD_veto"].fill(
+            #    dataset=dataset,
+            #    phi=ak.flatten(dphi_difatjet[tmp_sel & (ak.num(fatjet)>1)][:,0:1]),
+            #    weight = weight.weight()[tmp_sel & (ak.num(fatjet)>1)]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
-            output["AK8_sdmass"].fill(
-                dataset=dataset,
-                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
+            #output["AK8_sdmass"].fill(
+            #    dataset=dataset,
+            #    mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
             #output["MT_vs_sdmass_BL"].fill(
             #    dataset=dataset,
@@ -593,19 +593,19 @@ class FlatProcessor(processor.ProcessorABC):
             #    weight = weight.weight()[tmp_sel]
             #)
 
-            tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
-            output["n_AK4"].fill(
-                dataset=dataset,
-                multiplicity=ak.num(jet[tmp_sel]),
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
+            #output["n_AK4"].fill(
+            #    dataset=dataset,
+            #    multiplicity=ak.num(jet[tmp_sel]),
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['min_AK8_pt', 'MT>1200'])
-            output["min_AK8_pt"].fill(
-                dataset=dataset,
-                pt=ak.min(fatjet.pt[tmp_sel], axis=1),
-                weight = weight.weight()[tmp_sel]
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['min_AK8_pt', 'MT>1200'])
+            #output["min_AK8_pt"].fill(
+            #    dataset=dataset,
+            #    pt=ak.min(fatjet.pt[tmp_sel], axis=1),
+            #    weight = weight.weight()[tmp_sel]
+            #)
 
             #output['NH_weight_BL'].fill(
             #    dataset=dataset,
@@ -620,37 +620,37 @@ class FlatProcessor(processor.ProcessorABC):
             #    weight = np.nan_to_num(1-ak.prod(1-w_all[base_sel], axis=1), 0),
             #)
 
-            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>600', 'MT>1200'])
-            output['MT'].fill(
-                dataset=dataset,
-                mt = min_mt_AK8_MET[tmp_sel],
-            )
-            tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
-            output['MT_single_lep'].fill(
-                dataset=dataset,
-                mt = min_mt_AK8_MET[tmp_sel],
-            )
+            #tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>600', 'MT>1200'])
+            #output['MT'].fill(
+            #    dataset=dataset,
+            #    mt = min_mt_AK8_MET[tmp_sel],
+            #)
+            #tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
+            #output['MT_single_lep'].fill(
+            #    dataset=dataset,
+            #    mt = min_mt_AK8_MET[tmp_sel],
+            #)
 
-            tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
-            output['NH_weight'].fill(
-                dataset=dataset,
-                multiplicity = np.zeros_like(ak.num(fatjet[tmp_sel], axis=1)),
-                weight = np.nan_to_num(ak.prod(1-w_all[tmp_sel], axis=1), 0),
-            )
-            output['NH_weight'].fill(
+            #tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
+            #output['NH_weight'].fill(
+            #    dataset=dataset,
+            #    multiplicity = np.zeros_like(ak.num(fatjet[tmp_sel], axis=1)),
+            #    weight = np.nan_to_num(ak.prod(1-w_all[tmp_sel], axis=1), 0),
+            #)
+            #output['NH_weight'].fill(
                 # This already includes the overflow, so everything >0.
                 # In the end this is all we care about, we don't differenciate N_H=2 from N_H=1
-                dataset=dataset,
-                multiplicity = np.ones_like(ak.num(fatjet[tmp_sel], axis=1)),
-                weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
-            )
-            tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
-            output['b_DeltaR_vs_H_pt_BL'].fill(
-                dataset=dataset,
-                pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
-                phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
+            #    dataset=dataset,
+            #    multiplicity = np.ones_like(ak.num(fatjet[tmp_sel], axis=1)),
+            #    weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
+            #)
+            #tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
+            #output['b_DeltaR_vs_H_pt_BL'].fill(
+            #    dataset=dataset,
+            #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
+            #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
                 #weight = weight.weight()[base_sel&(ak.num(bquark)==2)]
-            )
+            #)
             output['b_DeltaR_vs_H_pt'].fill(
                 dataset=dataset,
                 pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
@@ -726,12 +726,12 @@ if __name__ == '__main__':
             #'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
-            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
-            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
-            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
+            #'2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
+            #'2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
+            #'2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
+            #'2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
+            #'2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
+            #'2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
         }
 
         meta_accumulator = {}
@@ -883,21 +883,21 @@ if __name__ == '__main__':
         plot_dir = '/home/users/$USER/public_html/HbbMET/plots/Jan14/'
         
         #need to add order to the plots
-        makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'met_pt_BL', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'dphi_AK4_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'dphi_AK4_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'dphi_AK4_MET_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'dphi_AK8_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'dphi_AK8_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'dphi_AK8_MET_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK4_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK4_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK4_QCD_veto_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK8_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK8_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK8_QCD_veto_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK8_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK8_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK8_sdmass_BL', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'n_AK4', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'n_AK4', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'n_AK4_BL', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'min_AK8_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'min_AK8_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'min_AK8_pt_BL', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'NH_weight_BL', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
