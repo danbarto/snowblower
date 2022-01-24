@@ -174,6 +174,7 @@ if __name__ == '__main__':
             'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
+            #'ZJetsToNuNu_HT2500toInf_HLLHC',
             #'ttHTobb_M125_TuneCUETP8M2_14TeV-powheg-pythia8_200PU',
             #'/WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8',
             'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
@@ -224,6 +225,18 @@ if __name__ == '__main__':
             with open('../data/samples.yaml', 'w') as f:
                     yaml.dump(database, f, Dumper=Dumper)
 
+        if not 'ZJetsToNuNu_HT2500toInf_HLLHC' in database.keys() or overwrite:
+            with open('../data/ZJetsToNuNu_HT2500toInf_HLLHC.txt', 'r') as f:
+                lines = f.readlines()
+            tt_files = [ l.replace('\n', '') for l in lines ]
+            database['ZJetsToNuNu_HT2500toInf_HLLHC'] = {}
+            database['ZJetsToNuNu_HT2500toInf_HLLHC']['delphes'] = []
+            database['ZJetsToNuNu_HT2500toInf_HLLHC']['ntuples'] = tt_files
+            database['ZJetsToNuNu_HT2500toInf_HLLHC']['xsec'] = 0.008571
+
+            with open('../data/samples.yaml', 'w') as f:
+                    yaml.dump(database, f, Dumper=Dumper)
+
     if False:  # NOTE: We don't care about nevents anymore. skims with version > 15 have counter histograms in them
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
         #for sample in ['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
@@ -236,7 +249,7 @@ if __name__ == '__main__':
                     yaml.dump(database, f, Dumper=Dumper)
 
     if True:
-        for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']:
+        for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU', 'ZJetsToNuNu_HT2500toInf_HLLHC']:
             #database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v16/'%sample)
             database[sample]['skim'] = glob.glob('/hadoop/cms/store/user/dspitzba/ProjectMetis/merge_%s_v16/*.root'%sample)
             #print (sample)
