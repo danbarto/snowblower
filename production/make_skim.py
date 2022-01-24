@@ -44,7 +44,8 @@ def submit():
         'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU',
         'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
         'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
-        'tZq_nunu_4f_14TeV-amcatnlo-madspin-pythia8_200PU',
+        'ZJetsToNuNu_HT2500toInf_HLLHC',
+        #'tZq_nunu_4f_14TeV-amcatnlo-madspin-pythia8_200PU',
         'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU',
         'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
         'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
@@ -54,7 +55,7 @@ def submit():
         'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
         'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
         'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
-        'ST_s-channel_4f_InclusiveDecays_14TeV-amcatnlo-pythia8_200PU',
+        #'ST_s-channel_4f_InclusiveDecays_14TeV-amcatnlo-pythia8_200PU',
      ]
 
 
