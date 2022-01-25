@@ -126,12 +126,18 @@ class FlatProcessor(processor.ProcessorABC):
             #    hist.Cat("dataset", "Dataset"),
             #    phi_bins2,
             #),
-            #"MT_vs_sdmass_BL": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    mt_bins,
-            #    mass_bins2,
-            #), 
+            "MT_vs_sdmass_BL": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
             #"AK8_sdmass_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
@@ -212,9 +218,12 @@ class FlatProcessor(processor.ProcessorABC):
         dataset = events.metadata['dataset']
         
         #meta_accumulator stuff
-        
+
         sumw = np.sum(events['genweight'])
         sumw2 = np.sum(events['genweight']**2)
+
+
+        #events = events[ak.flatten(events.metpuppi_pt)>300]
 
         #output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
         #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
@@ -227,46 +236,50 @@ class FlatProcessor(processor.ProcessorABC):
         #define objects
         
         #electrons
+        ele_sel = (events.elec_pt>10)
         electron = get_four_vec_fromPtEtaPhiM(
             None,
-            pt = events.elec_pt,
-            eta = events.elec_eta,
-            phi = events.elec_phi,
-            M = events.elec_mass,
+            pt = events.elec_pt[ele_sel],
+            eta = events.elec_eta[ele_sel],
+            phi = events.elec_phi[ele_sel],
+            M = events.elec_mass[ele_sel],
             copy = False,
         )
-        electron['id'] = events.elec_idpass  # > 0 should be loose
-        electron['iso'] = events.elec_isopass
+        electron['id'] = events.elec_idpass[ele_sel]  # > 0 should be loose
+        electron['iso'] = events.elec_isopass[ele_sel]
 
         ele_l = electron[((electron['id']>0)&(electron['iso']>0)&(electron.pt>10)&(np.abs(electron.eta)<3))]
-        
+
+
         #muons
+        mu_sel = (events.muon_pt>4)
         muon = get_four_vec_fromPtEtaPhiM(
             None,
-            pt = events.muon_pt,
-            eta = events.muon_eta,
-            phi = events.muon_phi,
-            M = events.muon_mass,
+            pt = events.muon_pt[mu_sel],
+            eta = events.muon_eta[mu_sel],
+            phi = events.muon_phi[mu_sel],
+            M = events.muon_mass[mu_sel],
             copy = False,
         )
-        muon['id'] = events.muon_idpass  # > 0 should be loose
-        muon['iso'] = events.muon_isopass
+        muon['id'] = events.muon_idpass[mu_sel]  # > 0 should be loose
+        muon['iso'] = events.muon_isopass[mu_sel]
 
         muon_l = muon[((muon['id']>0)&(muon['iso']>0)&(muon.pt>4)&(np.abs(muon.eta)<2.8))]
         
         #taus
+        tau_sel = (events.tau_pt>30)
         tau = get_four_vec_fromPtEtaPhiM(
             None,
-            pt = events.tau_pt,
-            eta = events.tau_eta,
-            phi = events.tau_phi,
-            M = events.tau_mass,
+            pt = events.tau_pt[tau_sel],
+            eta = events.tau_eta[tau_sel],
+            phi = events.tau_phi[tau_sel],
+            M = events.tau_mass[tau_sel],
             copy = False,
         )
-        tau['iso'] = events.tau_isopass   # > 0 should be loose
+        tau['iso'] = events.tau_isopass[tau_sel]   # > 0 should be loose
 
         tau_l = tau[((tau['iso']>0)&(tau.pt>30)&(np.abs(tau.eta)<3))]
-        
+
         #photons
         
         #gamma = get_four_vec_fromPtEtaPhiM(
@@ -281,32 +294,40 @@ class FlatProcessor(processor.ProcessorABC):
         #gamma['iso'] = events.gamma_isopass
 
         #gamma_l = gamma[((gamma['id']>0)&(gamma['iso']>0)&(gamma.pt>20)&(np.abs(gamma.eta)<3))]
-        
+
         #gen
+
+        gen_sel = ((abs(events.genpart_pid)==6) | (abs(events.genpart_pid)==5) | (abs(events.genpart_pid)==25))  # NOTE: attempt to speed up reading gigantic gen particle branches
+
         gen = get_four_vec_fromPtEtaPhiM(
             None,
-            pt = events.genpart_pt,
-            eta = events.genpart_eta,
-            phi = events.genpart_phi,
-            M = events.genpart_mass,
+            pt = events.genpart_pt[gen_sel],
+            eta = events.genpart_eta[gen_sel],
+            phi = events.genpart_phi[gen_sel],
+            M = events.genpart_mass[gen_sel],
             copy = False,
         )
-        gen['pdgId'] = events.genpart_pid
-        gen['status'] = events.genpart_status
+        gen['pdgId'] = events.genpart_pid[gen_sel]
+        gen['status'] = events.genpart_status[gen_sel]
 
         #higgs = gen[((abs(gen.pdgId)==25)&(gen.status==62))]
         higgs = gen[(abs(gen.pdgId)==25)][:,-1:]  # just get the last Higgs. Delphes is not keeping all the higgses.
 
         bquark = gen[((abs(gen.pdgId)==5)&(gen.status==71))]  # I suspect that Delphes does not keep b's with pt less than 20?
+        #bottom = gen[((gen.pdgId==5)&(gen.status==71))]  # I suspect that Delphes does not keep b's with pt less than 20?
+        #abottom = gen[((gen.pdgId==-5)&(gen.status==71))]  # I suspect that Delphes does not keep b's with pt less than 20?
         # so in rare occasions you'll only have one b with status 71
 
-        top = gen[gen.pdgId==6][:,-2:-1]
-        atop = gen[gen.pdgId==-6][:,-2:-1]
-        
-        dibquark = choose(bquark, 2)
-        ttbar = ak.flatten(cross(top, atop))
-        b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
-        
+        if dataset.count('TT_'):
+            top = gen[gen.pdgId==6][:,-2:-1]
+            atop = gen[gen.pdgId==-6][:,-2:-1]
+            ttbar = ak.flatten(cross(top, atop))
+
+        #return output
+        #dibquark = choose(bquark, 2)
+        #b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
+
+
         variations = ['central']
         for var in variations:
         
@@ -580,12 +601,19 @@ class FlatProcessor(processor.ProcessorABC):
                 weight = weight.weight()[tmp_sel]
             )
 
-            #output["MT_vs_sdmass_BL"].fill(
-            #    dataset=dataset,
-            #    mt=min_mt_AK8_MET[base_sel],
-            #    mass=ak.flatten(lead_fatjet.mass[base_sel]),
-            #    weight = weight.weight()[base_sel]
-            #)
+            output["MT_vs_sdmass_BL"].fill(
+                dataset=dataset,
+                mt=min_mt_AK8_MET[base_sel],
+                mass=ak.flatten(lead_fatjet.mass[base_sel]),
+                weight = weight.weight()[base_sel]
+            )
+            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+            output["MT_vs_sdmass"].fill(
+                dataset=dataset,
+                mt=min_mt_AK8_MET[tmp_sel],
+                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                weight = weight.weight()[tmp_sel]
+            )
             #output["MT_vs_sdmass"+'_'+var].fill(
             #    dataset=dataset,
             #    mt=min_mt_AK8_MET[tmp_sel],
@@ -644,19 +672,20 @@ class FlatProcessor(processor.ProcessorABC):
                 multiplicity = np.ones_like(ak.num(fatjet[tmp_sel], axis=1)),
                 weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
             )
-            tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
-            output['b_DeltaR_vs_H_pt_BL'].fill(
-                dataset=dataset,
-                pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
-                phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
-                #weight = weight.weight()[base_sel&(ak.num(bquark)==2)]
-            )
-            output['b_DeltaR_vs_H_pt'].fill(
-                dataset=dataset,
-                pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
-                phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
-                #weight = weight.weight()[tmp_sel&(ak.num(bquark)==2)]
-            )
+
+            #tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
+            #output['b_DeltaR_vs_H_pt_BL'].fill(
+            #    dataset=dataset,
+            #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
+            #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
+            #    #weight = weight.weight()[base_sel&(ak.num(bquark)==2)]
+            #)
+            #output['b_DeltaR_vs_H_pt'].fill(
+            #    dataset=dataset,
+            #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
+            #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
+            #    #weight = weight.weight()[tmp_sel&(ak.num(bquark)==2)]
+            #)
 
         return output
 
@@ -706,24 +735,27 @@ if __name__ == '__main__':
             exe_args = {"schema": BaseSchema, "workers": 20}
         
         fileset = {
-            #'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['skim'],
-            #'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['skim'],
-            #'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['skim'],
-            #'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['skim'],
-            #'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['skim'],
-            #'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['skim'],
-            #'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['skim'],
-            #'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['skim'],
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU': samples['TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU']['skim'],
+            'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-200To400_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-400To600_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['skim'],
+            'ZJetsToNuNu_HT2500toInf_HLLHC': samples['ZJetsToNuNu_HT2500toInf_HLLHC']['skim'],
+            'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
-            #'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT2000toInf_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT200to300_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT300to500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT500to700_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
+            'QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['QCD_bEnriched_HT700to1000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
@@ -750,6 +782,7 @@ if __name__ == '__main__':
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': 'ZJetsToNuNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8',
+            'ZJetsToNuNu_HT2500toInf_HLLHC': 'ZJetsToNuNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8',
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
             'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
             'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': 'QCD_bEnriched_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8',
@@ -793,7 +826,7 @@ if __name__ == '__main__':
             processor_instance = FlatProcessor(accumulator=meta_accumulator, effs=effs),
             executor = exe,
             executor_args = exe_args,
-            chunksize=1000000,
+            chunksize=100000,
             maxchunks=None,
         )
         
@@ -880,7 +913,7 @@ if __name__ == '__main__':
             
         ]
 
-        plot_dir = '/home/users/$USER/public_html/HbbMET/plots/Jan14/'
+        plot_dir = '/home/users/$USER/public_html/HbbMET/plots/Jan24/'
         
         #need to add order to the plots
         makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
@@ -901,3 +934,4 @@ if __name__ == '__main__':
         #makePlot2(scaled_output, 'min_AK8_pt_BL', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
         makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'NH_weight_BL', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
+        makePlot2(scaled_output, 'MT', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals, plot_dir)

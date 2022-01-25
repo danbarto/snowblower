@@ -6,22 +6,24 @@ def getJets(events, corrector, pt_var='central'):
     """takes a set of events and a set of weights and
     weights the jet pts of those events according to
     the variation given."""
-    
+
+    jet_presel = (events.jetpuppi_pt>20)  # NOTE: careful with this presel, but needed to speed up the procssor
+
     jet = get_four_vec_fromPtEtaPhiM(
             None,
-            pt = events.jetpuppi_pt,
-            eta = events.jetpuppi_eta,
-            phi = events.jetpuppi_phi,
-            M = events.jetpuppi_mass,
+            pt = events.jetpuppi_pt[jet_presel],
+            eta = events.jetpuppi_eta[jet_presel],
+            phi = events.jetpuppi_phi[jet_presel],
+            M = events.jetpuppi_mass[jet_presel],
             copy = False,
         )
     
     jet_pt_var = corrector.get(jet, pt_var)
     
-    jet['pt'] = jet_pt_var
+    jet['pt'] = jet_pt_var[jet_presel]
     
-    jet['id'] = events.jetpuppi_idpass
-    jet['btag'] = events.jetpuppi_btag
+    jet['id'] = events.jetpuppi_idpass[jet_presel]
+    jet['btag'] = events.jetpuppi_btag[jet_presel]
     
     return jet
 
@@ -50,5 +52,3 @@ def getFatjets(events, corrector, pt_var='central'):
     fatjet['tau4'] = events.fatjet_tau4
     
     return fatjet
-        
-    

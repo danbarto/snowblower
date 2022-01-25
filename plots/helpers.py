@@ -440,9 +440,11 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT2500toInf_HLLHC',
         ],
         'WJetsToLNu_Njet': [
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
@@ -460,6 +462,7 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
         ],
         'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
