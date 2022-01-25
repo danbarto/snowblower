@@ -470,7 +470,6 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
             'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
             'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
-            
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',

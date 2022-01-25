@@ -251,7 +251,8 @@ if __name__ == '__main__':
     if True:
         for sample in backgrounds + ['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU', 'ZJetsToNuNu_HT2500toInf_HLLHC']:
             #database[sample]['skim'] = gfal_wrapper('root://eoshome.cern.ch//eos/user/d/dspitzba/snowblower_data/%s_v16/'%sample)
-            database[sample]['skim'] = glob.glob('/hadoop/cms/store/user/dspitzba/ProjectMetis/merge_%s_v16/*.root'%sample)
+            #database[sample]['skim'] = glob.glob('/hadoop/cms/store/user/dspitzba/ProjectMetis/merge_%s_v16/*.root'%sample)
+            database[sample]['skim'] = glob.glob('/nfs-7/userdata/dspitzba/merge_%s_v16/*.root'%sample)
             #print (sample)
             # NOTE need to get the skim directory.
             # Something like
