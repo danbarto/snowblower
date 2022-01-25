@@ -440,15 +440,12 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-600To800_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-800To1200_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
+            'ZJetsToNuNu_HT2500toInf_HLLHC',
         ],
         'WJetsToLNu_Njet': [
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
+            'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
-        #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
         'QCD_bEnriched_HT': [
             'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
@@ -460,6 +457,20 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
         ],
         'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
+            'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
+        ],
+        'ST': [
+            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
+            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
+        ],
+        'Rares': [
+            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU'
+            'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
+            'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+            'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
+            
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
@@ -492,6 +503,14 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': [
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250', 
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000'
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': [
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250', 
