@@ -464,14 +464,14 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU',
             'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
             'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
-            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
-            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
-            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
-            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
         ],
         'TT': [
             'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU',
             'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU',
+            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
+            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
+            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
+            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
