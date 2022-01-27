@@ -61,11 +61,11 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 ht_bins,
             ),
-            #"Mtt_inclusive": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    ht_bins,
-            #),
+            "Mtt_inclusive": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                ht_bins,
+            ),
             "met_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
