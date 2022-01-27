@@ -28,11 +28,11 @@ class JES:
         
         self.evaluator = self.ext.make_evaluator()
 
-    def get(self, jet, variation='central'):
+    def get(self, jet, variation=''):
         
         jes = self.evaluator["jes"](jet.pt)
 
-        if variation == 'central':
+        if variation == '':
             # We don't reapply any JES corrections
             # So let's just bounce back the values we got in the first place
             #ak.ones_like(ak.num(jet.pt, axis=1))

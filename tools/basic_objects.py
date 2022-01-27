@@ -2,7 +2,7 @@ from tools.helpers import get_four_vec_fromPtEtaPhiM
 
 #can add pt and eta cuts in later
 
-def getJets(events, corrector, pt_var='central'):
+def getJets(events, corrector, pt_var=''):
     """takes a set of events and a set of weights and
     weights the jet pts of those events according to
     the variation given."""
@@ -28,7 +28,7 @@ def getJets(events, corrector, pt_var='central'):
     return jet
 
 
-def getFatjets(events, corrector, pt_var='central'):
+def getFatjets(events, corrector, pt_var=''):
     """takes a set of events and a set of weights and
     weights the fatjet pts of those events according to
     the variation given."""

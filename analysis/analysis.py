@@ -208,11 +208,11 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 mt_bins,
             ),
-            #"MT_single_lep": hist.Hist(
-            #    "Events",
-            #    hist.Cat("dataset", "Dataset"),
-            #    mt_bins,
-            #),
+            "MT_single_lep": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+            ),
             "AK8_sdmass": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
@@ -380,16 +380,15 @@ class FlatProcessor(processor.ProcessorABC):
             atop = gen[gen.pdgId==-6][:,-2:-1]
             ttbar = ak.flatten(cross(top, atop))
 
-        #return output
-        #dibquark = choose(bquark, 2)
-        #b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
+        dibquark = choose(bquark, 2)
+        b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
 
 
         variations = ['', 'up', 'down']
         for var in variations:
         
             #jets
-            old_jet = getJets(events, jes_corrector, 'central')
+            old_jet = getJets(events, jes_corrector, '')
 
             jet_px_old = old_jet.pt*np.cos(old_jet.phi)
             jet_py_old = old_jet.pt*np.sin(old_jet.phi)
@@ -704,7 +703,7 @@ class FlatProcessor(processor.ProcessorABC):
                             mass=ak.flatten(lead_fatjet.mass[base_sel]),
                             weight = weight.weight()[base_sel]
                         )
-                        output["MT_vs_sdmass"+'_'+var].fill(
+                        output["MT_vs_sdmass"].fill(
                             dataset=dataset,
                             mt=min_mt_AK8_MET[tmp_sel],
                             mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
@@ -844,14 +843,14 @@ class FlatProcessor(processor.ProcessorABC):
                     'MT>1200',
                 ]
 
-                    tight_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
+                tight_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
                     
-                    output["MT_vs_sdmass"+'_'+var].fill(
-                        dataset=dataset,
-                        mt=min_mt_AK8_MET[tmp_sel],
-                        mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                        weight = weight.weight()[tmp_sel]
-                    )
+                output["MT_vs_sdmass"+'_'+var].fill(
+                    dataset=dataset,
+                    mt=min_mt_AK8_MET[tmp_sel],
+                    mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                    weight = weight.weight()[tmp_sel]
+                )
                 
 
         return output
@@ -926,7 +925,7 @@ if __name__ == '__main__':
                 'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['skim'],
                 'ZJetsToNuNu_HT2500toInf_HLLHC': samples['ZJetsToNuNu_HT2500toInf_HLLHC']['skim'],
             },
-            'W': {
+            'W': {	
                 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
                 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             },
@@ -984,10 +983,12 @@ if __name__ == '__main__':
         }
 
         if args.run == 'all':
-            fileset = { name: fileset_all[name] for name in fileset_all.keys() }
+            fileset={}
+            for name in fileset_all.keys():
+                fileset.update(fileset_all[name])
         else:
             fileset = fileset_all[args.run]
-
+            
         meta_accumulator = {}
         for sample in fileset:
             if sample not in meta_accumulator:
@@ -1045,8 +1046,7 @@ if __name__ == '__main__':
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
-            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
-            
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',    
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
@@ -1064,7 +1064,7 @@ if __name__ == '__main__':
         }
         
         effs = {}
-        for s in fileset.keys():
+        for s in fileset.keys() :
             effs[s] = {}
             for b in ['0b', '1b', '2b', '1h']:
                 effs[s][b] = Hist2D.from_json(os.path.expandvars("../data/htag/eff_%s_%s.json"%(run2_to_delphes[s],b)))
