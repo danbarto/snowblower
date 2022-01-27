@@ -367,7 +367,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         for sample in keys:
             if sample not in signals:
                 backgrounds += (sample,)
-           
+                           
         total_mc = get_total(histos, backgrounds)
         
         fig, (ax) = plt.subplots(figsize=(10,10))
@@ -407,7 +407,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         ax.set_yscale('log')
         ax.legend(prop={'size': 10})
         
-        add_uncertainty(total_mc, ax, ratio=True)
+        #add_uncertainty(total_mc, ax, ratio=True)
 
         plot_dir = os.path.expandvars(plot_dir)
         finalizePlotDir(plot_dir)

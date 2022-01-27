@@ -16,10 +16,10 @@ import os
 def submit():
 
     requests = {
-	'2HDMa_bb_1000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
-        '2HDMa_bb_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
-        '2HDMa_gg_1000_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
-        '2HDMa_gg_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+	'2HDMa_bb_1000_150_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        #'2HDMa_bb_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
+        '2HDMa_gg_1000_150_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
+        #'2HDMa_gg_750_250_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
         #'test_ZJets2500toInf': '/cvmfs/cms.cern.ch/phys_generator/gridpacks/slc6_amd64_gcc481/14TeV/madgraph/V5_2.3.3/ZJetsToNuNu_HT2500toInf/v3/ZJetsToNuNu_HT2500toInf_tweak_iter_1k.tar.xz', 
 	#'2HDMa_bb_1600_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',    
         #'2HDMa_bb_1900_750_10': '/hadoop/cms/store/user/ewallace/gridpacks/2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900_slc7_amd64_gcc700_CMSSW_10_6_19_tarball.tar.xz',
