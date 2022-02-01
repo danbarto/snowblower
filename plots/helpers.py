@@ -368,6 +368,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
             if sample not in signals:
                 backgrounds += (sample,)
                            
+        print(backgrounds)
         total_mc = get_total(histos, backgrounds)
         
         fig, (ax) = plt.subplots(figsize=(10,10))
@@ -417,7 +418,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
 def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     """
     Scale samples to a physical cross section.
-    Merge samples into categories, e.g. several ttZ samples into one ttZ category. Not yet implemented
+    Merge samples into categories, e.g. several ttZ samples into one ttZ category.
     
     histogram -- coffea histogram
     samples -- samples dictionary that contains the x-sec and sumWeight
@@ -442,7 +443,7 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT2500toInf_HLLHC',
         ],
-        'WJetsToLNu_Njet': [
+        'WJetsToLNu': [
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
@@ -467,18 +468,6 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
             'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
             'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
-        ],
-        'ST': [
-            'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
-            'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
-            'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU',
-            'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU',
-        ],
-        'Rares': [
-            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU'
-            'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU',
-            'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
-            'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU',
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',

@@ -584,37 +584,6 @@ class FlatProcessor(processor.ProcessorABC):
 
                     base_sel = n_minus_one(selection, baseline, [])
                     tight_sel = n_minus_one(selection, tight, [])
-
-                    output['cutflow'][dataset]['total'] += len(events)
-                    output['cutflow'][dataset]['lepton_veto'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
-                    output['cutflow'][dataset]['MET>300'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
-                    output['cutflow'][dataset]['N_AK8>0'] += len(events[base_sel])
-                    output['cutflow'][dataset]['N_AK4>1'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt','dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['min_AK8_pt'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['dphi_AK8_MET>1'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['1<dphi_AK4_MET<3'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200',])])
-                    output['cutflow'][dataset]['AK4_QCD_veto'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['AK8_QCD_veto'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['N_H>0'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['on_H'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['MT>600'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])])
-                    output['cutflow'][dataset]['MT>1200'] += sum(weight.weight()[tight_sel])
-
-
-                    output['cutflow'][dataset]['total_w2'] += len(events)
-                    output['cutflow'][dataset]['lepton_veto_w2'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
-                    output['cutflow'][dataset]['MET>300_w2'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
-                    output['cutflow'][dataset]['N_AK8>0_w2'] += len(events[base_sel])
-                    output['cutflow'][dataset]['N_AK4>1_w2'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt', 'dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['min_AK8_pt_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['dphi_AK8_MET>1_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['1<dphi_AK4_MET<3_w2'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['AK4_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['AK8_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-                    output['cutflow'][dataset]['N_H>0_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600', 'MT>1200'])]**2)
-                    output['cutflow'][dataset]['on_H_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])]**2)
-                    output['cutflow'][dataset]['MT>600_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])]**2)
-                    output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
                     
                     tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
                     
@@ -626,6 +595,36 @@ class FlatProcessor(processor.ProcessorABC):
                     )
 
                     if tagger == '':
+                        output['cutflow'][dataset]['total'] += len(events)
+                        output['cutflow'][dataset]['lepton_veto'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
+                        output['cutflow'][dataset]['MET>300'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
+                        output['cutflow'][dataset]['N_AK8>0'] += len(events[base_sel])
+                        output['cutflow'][dataset]['N_AK4>1'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt','dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['min_AK8_pt'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['dphi_AK8_MET>1'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['1<dphi_AK4_MET<3'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200',])])
+                        output['cutflow'][dataset]['AK4_QCD_veto'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK8_QCD_veto'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['N_H>0'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['on_H'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['MT>600'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])])
+                        output['cutflow'][dataset]['MT>1200'] += sum(weight.weight()[tight_sel])
+
+                        output['cutflow'][dataset]['total_w2'] += len(events)
+                        output['cutflow'][dataset]['lepton_veto_w2'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
+                        output['cutflow'][dataset]['MET>300_w2'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
+                        output['cutflow'][dataset]['N_AK8>0_w2'] += len(events[base_sel])
+                        output['cutflow'][dataset]['N_AK4>1_w2'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt', 'dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['min_AK8_pt_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['dphi_AK8_MET>1_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['1<dphi_AK4_MET<3_w2'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK4_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK8_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['N_H>0_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600', 'MT>1200'])]**2)
+                        output['cutflow'][dataset]['on_H_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])]**2)
+                        output['cutflow'][dataset]['MT>600_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])]**2)
+                        output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
+                        
                         tmp_base_sel = n_minus_one(selection, baseline, ['met'])
                         tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
                         output["met_pt"].fill(
@@ -703,13 +702,6 @@ class FlatProcessor(processor.ProcessorABC):
                             mass=ak.flatten(lead_fatjet.mass[base_sel]),
                             weight = weight.weight()[base_sel]
                         )
-                        output["MT_vs_sdmass"].fill(
-                            dataset=dataset,
-                            mt=min_mt_AK8_MET[tmp_sel],
-                            mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                            weight = weight.weight()[tmp_sel]
-                        )
-
                         tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
                         output["n_AK4"].fill(
                             dataset=dataset,
@@ -925,7 +917,7 @@ if __name__ == '__main__':
                 'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU']['skim'],
                 'ZJetsToNuNu_HT2500toInf_HLLHC': samples['ZJetsToNuNu_HT2500toInf_HLLHC']['skim'],
             },
-            'W': {	
+            'W': {
                 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
                 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU': samples['WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']['skim'],
             },
