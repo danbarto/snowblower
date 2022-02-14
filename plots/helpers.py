@@ -367,7 +367,8 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         for sample in keys:
             if sample not in signals:
                 backgrounds += (sample,)
-           
+                           
+        order = [('other',), ('WJetsToLNu',), ('TT',), ('QCD_bEnriched_HT',), ('ZJetsToNuNu_HT',),]
         total_mc = get_total(histos, backgrounds)
         
         fig, (ax) = plt.subplots(figsize=(10,10))
@@ -376,29 +377,29 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
             loc=0,
             ax=ax,
             #lumi = 3000,
-            rlabel = '14 TeV',
+            rlabel = r'$3000\ fb^{-1}\ (14\ TeV)$',
         )
         if backgrounds != []:
             hep.histplot(
-                [histos[sample].counts for sample in backgrounds],
+                [histos[sample].counts for sample in order],
                 histos[edge].edges,
                 #w2=[(hists[x].errors)**2 for x in keys ],
                 histtype="fill",
                 density = False,
                 stack=True,
-                label=[labels[sample] for sample in backgrounds],
-                color=[colors[sample] for sample in backgrounds],
+                label=[labels[sample] for sample in order],
+                color=[colors[sample] for sample in order],
                 ax=ax
             )
         
         hep.histplot(
-            [histos[sample].counts for sample in signals[1:]],
+            [histos[sample].counts for sample in signals[1:4]],
             histos[edge].edges,
-            w2=[(histos[sample].errors)**2 for sample in signals[1:]],
+            w2=[(histos[sample].errors)**2 for sample in signals[1:4]],
             histtype="step",
             density = False,
             stack=False,
-            label=[labels[sample] for sample in signals[1:]],
+            label=[labels[sample] for sample in signals[1:4]],
             ax=ax
         )
         
@@ -407,7 +408,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         ax.set_yscale('log')
         ax.legend(prop={'size': 10})
         
-        add_uncertainty(total_mc, ax, ratio=True)
+        #add_uncertainty(total_mc, ax, ratio=True)
 
         plot_dir = os.path.expandvars(plot_dir)
         finalizePlotDir(plot_dir)
@@ -417,7 +418,7 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
 def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     """
     Scale samples to a physical cross section.
-    Merge samples into categories, e.g. several ttZ samples into one ttZ category. Not yet implemented
+    Merge samples into categories, e.g. several ttZ samples into one ttZ category.
     
     histogram -- coffea histogram
     samples -- samples dictionary that contains the x-sec and sumWeight
@@ -442,15 +443,10 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ZJetsToNuNu_HT-1200To2500_14TeV-madgraph_200PU',
             'ZJetsToNuNu_HT2500toInf_HLLHC',
         ],
-        'WJetsToLNu_Njet': [
+        'WJetsToLNu': [
             'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
-            #'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
         ],
-        #'WJetsToLNu_Njet2': ['W0JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W1JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W2JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2', 'W3JetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU_2'],
         'QCD_bEnriched_HT': [
             'QCD_bEnriched_HT1000to1500_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
             'QCD_bEnriched_HT1500to2000_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU',
@@ -473,21 +469,109 @@ def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
             'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
             'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU',
         ],
+         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000'
+        ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
                 '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250'
         ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': [
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
                 '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500'
         ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600'
+        ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': [
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750', 
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750'
         ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900'
+        ],
         '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': [
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000', 
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900': [
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900',
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000'
+        ],
+        '2HDMa_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250': [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250', 
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250'
         ],
     }
     temp = temp.group("dataset", hist.Cat("dataset", "new grouped dataset"), mapping)

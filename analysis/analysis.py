@@ -38,7 +38,7 @@ met_bins = hist.Bin('pt', r'$MET_{pt}\ (GeV)$', 18, 100, 1000)
 met_bins_ext = hist.Bin('pt', r'$MET_{pt}\ (GeV)$', 20, 0, 1000)
 eta_bins = hist.Bin("eta", "$\eta$", 33, -4, 4)
 phi_bins = hist.Bin("phi", "$\phi$", 33, -4, 4)
-phi_bins2 = hist.Bin("phi", "$\phi$", 16, 0, 4)
+phi_bins2 = hist.Bin("phi", "$\phi$", 20, 0, 4)
 tau1_bins = hist.Bin("tau", "$\tau_1$", 10, 0, 0.7)
 tau2_bins = hist.Bin("tau", "$\tau_2$", 10, 0, 0.5)
 tau3_bins = hist.Bin("tau", "$\tau_3$", 10, 0, 0.4)
@@ -138,6 +138,72 @@ class FlatProcessor(processor.ProcessorABC):
                 mt_bins,
                 mass_bins2,
             ),
+            "MT_vs_sdmass_0b_up": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_0b_down": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_1b_up": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_1b_down": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_2b_up": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_2b_down": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_1h_up": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_1h_down": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_up": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_down": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
+            "MT_vs_sdmass_jmr": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
             #"AK8_sdmass_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
@@ -188,17 +254,24 @@ class FlatProcessor(processor.ProcessorABC):
                 hist.Cat("dataset", "Dataset"),
                 N_H_bins,
             ),
-            "b_DeltaR_vs_H_pt_BL": hist.Hist(
-                "Events",
-                hist.Cat("dataset", "Dataset"),
-                pt_bins,
-                phi_bins2,
-            ),
+            #"b_DeltaR_vs_H_pt_BL": hist.Hist(
+            #    "Events",
+            #    hist.Cat("dataset", "Dataset"),
+            #    pt_bins,
+            #    phi_bins2,
+            #),
             "b_DeltaR_vs_H_pt": hist.Hist(
                 "Events",
                 hist.Cat("dataset", "Dataset"),
                 pt_bins,
                 phi_bins2,
+            ),
+            "MT_vs_sdmass_LHE": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                hist.Cat("variation", "Variation"),
+                mt_bins,
+                mass_bins2,
             ),
         })
 
@@ -222,16 +295,13 @@ class FlatProcessor(processor.ProcessorABC):
         sumw = np.sum(events['genweight'])
         sumw2 = np.sum(events['genweight']**2)
 
+        output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
+        output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
+        output[events.metadata['filename']]['nChunk'] += 1
 
-        #events = events[ak.flatten(events.metpuppi_pt)>300]
-
-        #output[events.metadata['filename']]['sumWeight'] += sumw  # naming for consistency...
-        #output[events.metadata['filename']]['sumWeight2'] += sumw2  # naming for consistency...
-        #output[events.metadata['filename']]['nChunk'] += 1
-
-        #output[dataset]['sumWeight'] += sumw
-        #output[dataset]['sumWeight2'] += sumw2
-        #output[dataset]['nChunk'] += 1
+        output[dataset]['sumWeight'] += sumw
+        output[dataset]['sumWeight2'] += sumw2
+        output[dataset]['nChunk'] += 1
         
         #define objects
         
@@ -323,17 +393,31 @@ class FlatProcessor(processor.ProcessorABC):
             atop = gen[gen.pdgId==-6][:,-2:-1]
             ttbar = ak.flatten(cross(top, atop))
 
-        #return output
-        #dibquark = choose(bquark, 2)
-        #b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
+        dibquark = choose(bquark, 2)
+        b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
 
-
-        variations = ['central']
-        for var in variations:
+        #find some easy way to list all the datasets that are in signal?
+        lheweights = events.lheweight_val
+        lheweight_ratio = {}
+        for i in range(363,463):
+            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
+        for i in [463,464]:
+            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
+        for i in [5, 10, 15, 20, 30, 40]:
+            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
         
+        variations = ['', '_up', '_down']
+        for var in variations:
             #jets
+            old_jet = getJets(events, jes_corrector, '')
+
+            jet_px_old = old_jet.pt*np.cos(old_jet.phi)
+            jet_py_old = old_jet.pt*np.sin(old_jet.phi)
 
             jet = getJets(events, jes_corrector, var)
+            
+            jet_px = jet.pt*np.cos(jet.phi)
+            jet_py = jet.pt*np.sin(jet.phi)
 
             #follow Delphes recommendations
             jet = jet[jet.pt > 30]
@@ -352,341 +436,393 @@ class FlatProcessor(processor.ProcessorABC):
             # Objects are defined here: https://twiki.cern.ch/twiki/bin/view/CMS/DelphesInstructions
             # restrict abs(eta) to 2.8 (whatever the tracker acceptance of PhaseII CMS is)
 
-            fatjet = getFatjets(events, jes_corrector, var)
+            resolutions = ['']
+            if var == '':
+                resolutions = ['', [0.05,0.1]]
+            for res in resolutions:                
+                fatjet = getFatjets(events, jes_corrector, var, res)
 
-            fatjet = fatjet[np.abs(fatjet.eta) < 3] #eta within tracker range        
-            fatjet = fatjet[~match(fatjet, ele_l, deltaRCut=0.8)] #remove electron overlap
-            fatjet = fatjet[~match(fatjet, muon_l, deltaRCut=0.8)] #remove muon overlap
+                fatjet = fatjet[np.abs(fatjet.eta) < 3] #eta within tracker range        
+                fatjet = fatjet[~match(fatjet, ele_l, deltaRCut=0.8)] #remove electron overlap
+                fatjet = fatjet[~match(fatjet, muon_l, deltaRCut=0.8)] #remove muon overlap
 
-            extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
-            extrabtag = extrajet[extrajet.btag>0] #loose wp for now
+                extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
+                extrabtag = extrajet[extrajet.btag>0] #loose wp for now
 
-            tau21 = np.divide(fatjet.tau2, fatjet.tau1)
+                tau21 = np.divide(fatjet.tau2, fatjet.tau1)
 
-            fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
-            on_h = (ak.num(fatjet_on_h) > 0)
+                fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
+                on_h = (ak.num(fatjet_on_h) > 0)
 
-            lead_fatjet = fatjet[:,0:1]
+                lead_fatjet = fatjet[:,0:1]
 
-            difatjet = choose(fatjet, 2)
-            dijet = choose(jet[:,:4], 2)  # only take the 4 leading jets
-            #di_AK8_AK4 = cross(extrajet, fatjet)
+                difatjet = choose(fatjet, 2)
+                dijet = choose(jet[:,:4], 2)  # only take the 4 leading jets
+                #di_AK8_AK4 = cross(extrajet, fatjet)
 
-            dphi_difatjet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
-            dphi_dijet = np.arccos(np.cos(dijet['0'].phi-dijet['1'].phi))
-            #dphi_AK8_AK4 = np.arccos(np.cos(di_AK8_AK4['0'].phi-di_AK8_AK4['1'].phi)) # not back-to-back
-            AK8_QCD_veto = ak.all(dphi_difatjet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK8 (ak.all!)
-            AK4_QCD_veto = ak.all(dphi_dijet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK4 (ak.all!)
-            #min_dphi_AK8_AK4 = ak.to_numpy(ak.min(dphi_AK8_AK4, axis=1))
+                dphi_difatjet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
+                dphi_dijet = np.arccos(np.cos(dijet['0'].phi-dijet['1'].phi))
+                #dphi_AK8_AK4 = np.arccos(np.cos(di_AK8_AK4['0'].phi-di_AK8_AK4['1'].phi)) # not back-to-back
+                AK8_QCD_veto = ak.all(dphi_difatjet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK8 (ak.all!)
+                AK4_QCD_veto = ak.all(dphi_dijet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK4 (ak.all!)
+                #min_dphi_AK8_AK4 = ak.to_numpy(ak.min(dphi_AK8_AK4, axis=1))
+
+                #MET
+
+                met_pt = ak.flatten(events.metpuppi_pt)
+                genmet_pt = ak.flatten(events.genmet_pt)
+                met_phi = ak.flatten(events.metpuppi_phi)
+
+                met_px = met_pt*np.cos(met_phi)
+                met_py = met_pt*np.sin(met_phi)
+                met_px_new = met_px - ak.sum(jet_px-jet_px_old, axis=1)
+                met_py_new = met_py - ak.sum(jet_py-jet_py_old, axis=1)
+                met_pt = np.sqrt(met_px_new**2+met_py_new**2)
+
+                mt_AK8_MET = mt(fatjet.pt, fatjet.phi, met_pt, met_phi)
+                min_mt_AK8_MET = ak.to_numpy(ak.min(mt_AK8_MET, axis=1))
+                min_dphi_AK8_MET = ak.to_numpy(ak.min(np.arccos(np.cos(fatjet.phi-met_phi)), axis=1))
+                min_dphi_AK4_MET = ak.to_numpy(ak.min(np.arccos(np.cos(jet.phi-met_phi)), axis=1))
+                #min_dphi_AK4clean_MET = ak.to_numpy(ak.min(np.arccos(np.cos(extrajet.phi-met_phi)), axis=1))  
+
+                nb_in_fat = match_count(fatjet, bquark, deltaRCut=0.8)
+                nhiggs_in_fat = match_count(fatjet, higgs, deltaRCut=0.8)
+                zerohiggs = (nhiggs_in_fat==0)
+                onehiggs = (nhiggs_in_fat==1)
+
+                zerob = ((nb_in_fat==0) & (zerohiggs))  # verified to work!
+                oneb  = ((nb_in_fat==1) & (zerohiggs))  # verified to work!
+                twob  = ((nb_in_fat>=2) & (zerohiggs))  # verified to work!
+
+
+                taggers = ['']
+                if (var == '') and (res == ''):
+                    taggers = ['', '_0b_up', '_0b_down', '_1b_up', '_1b_down', '_2b_up', '_2b_down', '_1h_up', '_1h_down']
+                for tagger in taggers:
+                    w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)
+                    w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)
+                    w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)
+                    w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)
+
+                    if tagger == '_0b_up':
+                        w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*1.05
+                    if tagger == '_0b_down':
+                         w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*0.95
+                    if tagger == '_1b_up':
+                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*1.05
+                    if tagger == '_1b_down':
+                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*0.95
+                    if tagger == '_2b_up':
+                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*1.05
+                    if tagger == '_2b_down':
+                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*0.95
+                    if tagger == '_1h_up':
+                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*1.05
+                    if tagger == '_1h_down':
+                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*0.95
+
+                    w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
+                    if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
+                        w_all = w_all + w_1h * onehiggs
+
+                    #selections
+                    selection = PackedSelection()
+
+                    if dataset == 'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU':
+                        selection.add('overlap', (ttbar.mass>1000))
+                    elif dataset == 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU':
+                        selection.add('overlap', (ttbar.mass<1000))
+                    elif dataset == 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
+                        selection.add('overlap', genmet_pt>100)
+                    elif dataset == 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
+                        selection.add('overlap', genmet_pt<100)
+                    else:
+                        selection.add('overlap', met_pt>0) # NOTE: this is a dummy selection that should always evaluate to true
+
+                    selection.add('single_lep', ((ak.num(ele_l, axis=1)>0) | (ak.num(muon_l, axis=1)>0) | (ak.num(tau_l, axis=1)>0)))
+                    selection.add('ele_veto', ak.num(ele_l, axis=1)==0)
+                    selection.add('mu_veto',  ak.num(muon_l, axis=1)==0)
+                    selection.add('tau_veto', ak.num(tau_l, axis=1)==0)
+                    selection.add('met',      met_pt>300)
+                    selection.add('nAK4',     ak.num(jet, axis=1)>1)
+                    selection.add('nAK8',     ak.num(fatjet, axis=1)>0)
+                    selection.add('min_AK8_pt', ak.min(fatjet.pt, axis=1)>300)
+                    selection.add('dphi_AK8_MET>1', min_dphi_AK8_MET>1.0)
+                    selection.add('dphi_AK4_MET<3', min_dphi_AK4_MET<3.0)
+                    selection.add('dphi_AK4_MET>1', min_dphi_AK4_MET>1.0)
+                    selection.add('AK4_QCD_veto', AK4_QCD_veto)
+                    selection.add('AK8_QCD_veto', AK8_QCD_veto)
+                    selection.add('on_H',     on_h)
+                    selection.add('MT>600',   min_mt_AK8_MET>600)
+                    selection.add('MT>1200',   min_mt_AK8_MET>1200)
+
+
+                    #weights
+
+                    weight = Weights(len(events))
+                    weight.add("NH>0", np.nan_to_num(1-ak.prod(1-w_all, axis=1), 0))
+
+                    #outputs
+
+                    baseline = [
+                        'overlap',
+                        'ele_veto',
+                        'mu_veto',
+                        'tau_veto',
+                        'met',
+                        'nAK8',
+                    ]
+
+                    tight = [
+                        'overlap',
+                        'ele_veto',
+                        'mu_veto',
+                        'tau_veto',
+                        'met',
+                        'nAK8',
+                        'nAK4',
+                        'min_AK8_pt',
+                        'dphi_AK8_MET>1',
+                        'dphi_AK4_MET<3',
+                        'dphi_AK4_MET>1',
+                        'AK4_QCD_veto',
+                        'AK8_QCD_veto',
+                        'on_H',
+                        'MT>600',
+                        'MT>1200',
+                    ]
+
+                    single_lep = [
+                        'overlap',
+                        'single_lep',
+                        'met',
+                        'nAK8',
+                        'nAK4',
+                        'min_AK8_pt',
+                        'dphi_AK8_MET>1',
+                        'dphi_AK4_MET<3',
+                        'dphi_AK4_MET>1',
+                        'AK4_QCD_veto',
+                        'AK8_QCD_veto',
+                        'on_H',
+                        'MT>600',
+                        'MT>1200',
+                    ]
+
+                    base_sel = n_minus_one(selection, baseline, [])
+                    tight_sel = n_minus_one(selection, tight, [])
+                    
+                    if res == '':
+                        tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+                        output["MT_vs_sdmass"+var+tagger].fill(
+                            dataset=dataset,
+                            mt=min_mt_AK8_MET[tmp_sel],
+                            mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                            weight = weight.weight()[tmp_sel]
+                        )
+                    
+                    if (tagger == '') and (res != ''):            
+                            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+                            output["MT_vs_sdmass_jmr"].fill(
+                                dataset=dataset,
+                                mt=min_mt_AK8_MET[tmp_sel],
+                                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                                weight = weight.weight()[tmp_sel]
+                            )
+
+                    if (var == '') and (tagger == '') and (res == ''):
+                        output['cutflow'][dataset]['total'] += len(events)
+                        output['cutflow'][dataset]['lepton_veto'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
+                        output['cutflow'][dataset]['MET>300'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
+                        output['cutflow'][dataset]['N_AK8>0'] += len(events[base_sel])
+                        output['cutflow'][dataset]['N_AK4>1'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt','dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['min_AK8_pt'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['dphi_AK8_MET>1'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['1<dphi_AK4_MET<3'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200',])])
+                        output['cutflow'][dataset]['AK4_QCD_veto'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto','on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK8_QCD_veto'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['N_H>0'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['on_H'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['MT>600'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])])
+                        output['cutflow'][dataset]['MT>1200'] += sum(weight.weight()[tight_sel])
+
+                        output['cutflow'][dataset]['total_w2'] += len(events)
+                        output['cutflow'][dataset]['lepton_veto_w2'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
+                        output['cutflow'][dataset]['MET>300_w2'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
+                        output['cutflow'][dataset]['N_AK8>0_w2'] += len(events[base_sel])
+                        output['cutflow'][dataset]['N_AK4>1_w2'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt', 'dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['min_AK8_pt_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['dphi_AK8_MET>1_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['1<dphi_AK4_MET<3_w2'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK4_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['AK8_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
+                        output['cutflow'][dataset]['N_H>0_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600', 'MT>1200'])]**2)
+                        output['cutflow'][dataset]['on_H_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])]**2)
+                        output['cutflow'][dataset]['MT>600_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])]**2)
+                        output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
+
+                        tmp_base_sel = n_minus_one(selection, baseline, ['met'])
+                        tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+                        output["met_pt"].fill(
+                            dataset=dataset,
+                            pt=met_pt[tmp_sel],
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+                        output["genmet_pt"].fill(
+                            dataset=dataset,
+                            pt=genmet_pt[tmp_sel],
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        tmp_sel = n_minus_one(selection, baseline, ['met', 'nAK8', 'overlap'])
+                        output["genmet_pt_inclusive"].fill(
+                            dataset=dataset,
+                            pt=genmet_pt,
+                            weight = weight.weight()
+                        )
+
+                        if dataset.count('TT_'):
+                            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
+                            output["Mtt"].fill(
+                                dataset=dataset,
+                                pt=ttbar.mass[tmp_sel],
+                                weight = weight.weight()[tmp_sel]
+                            )
+                            
+                            tmp_sel = n_minus_one(selection, baseline, ['overlap'])
+                            output["Mtt_inclusive"].fill(
+                                dataset=dataset,
+                                pt=ttbar.mass[tmp_sel],
+                                weight = weight.weight()[tmp_sel]
+                            )
+
+                        tmp_sel = n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'MT>1200'])
+                        output["dphi_AK8_MET"].fill(
+                            dataset=dataset,
+                            phi=min_dphi_AK8_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['dphi_AK4_MET<3', 'dphi_AK4_MET>1', 'MT>1200'])
+                        output["dphi_AK4_MET"].fill(
+                            dataset=dataset,
+                            phi=min_dphi_AK4_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['AK4_QCD_veto', 'MT>1200'])
+                        output["AK4_QCD_veto"].fill(
+                            dataset=dataset,
+                            phi=ak.flatten(dphi_dijet[tmp_sel & (ak.num(jet)>1)][:,0:1]),
+                            weight = weight.weight()[tmp_sel & (ak.num(jet)>1)]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['AK8_QCD_veto', 'MT>1200'])
+                        output["AK8_QCD_veto"].fill(
+                            dataset=dataset,
+                            phi=ak.flatten(dphi_difatjet[tmp_sel & (ak.num(fatjet)>1)][:,0:1]),
+                            weight = weight.weight()[tmp_sel & (ak.num(fatjet)>1)]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
+                        output["AK8_sdmass"].fill(
+                            dataset=dataset,
+                            mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        output["MT_vs_sdmass_BL"].fill(
+                            dataset=dataset,
+                            mt=min_mt_AK8_MET[base_sel],
+                            mass=ak.flatten(lead_fatjet.mass[base_sel]),
+                            weight = weight.weight()[base_sel]
+                        )
+                            
+                        tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
+                        output["n_AK4"].fill(
+                            dataset=dataset,
+                            multiplicity=ak.num(jet[tmp_sel]),
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['min_AK8_pt', 'MT>1200'])
+                        output["min_AK8_pt"].fill(
+                            dataset=dataset,
+                            pt=ak.min(fatjet.pt[tmp_sel], axis=1),
+                            weight = weight.weight()[tmp_sel]
+                        )
+
+                        #output['NH_weight_BL'].fill(
+                        #    dataset=dataset,
+                        #    multiplicity = np.zeros_like(ak.num(fatjet[base_sel], axis=1)),
+                        #    weight = np.nan_to_num(ak.prod(1-w_all[base_sel], axis=1), 0),
+                        #)
+                        #output['NH_weight_BL'].fill(
+                            # This already includes the overflow, so everything >0.
+                            # In the end this is all we care about, we don't differenciate N_H=2 from N_H=1
+                        #    dataset=dataset,
+                        #    multiplicity = np.ones_like(ak.num(fatjet[base_sel], axis=1)),
+                        #    weight = np.nan_to_num(1-ak.prod(1-w_all[base_sel], axis=1), 0),
+                        #)
+
+                        tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>600', 'MT>1200'])
+                        output['MT'].fill(
+                            dataset=dataset,
+                            mt = min_mt_AK8_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel],
+                        )
+                       
+                        tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
+                        output['MT_single_lep'].fill(
+                            dataset=dataset,
+                            mt = min_mt_AK8_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel],
+                        )
+
+                        tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
+                        output['NH_weight'].fill(
+                            dataset=dataset,
+                            multiplicity = np.zeros_like(ak.num(fatjet[tmp_sel], axis=1)),
+                            weight = np.nan_to_num(ak.prod(1-w_all[tmp_sel], axis=1), 0),
+                        )
+                        output['NH_weight'].fill(
+                            # This already includes the overflow, so everything >0.
+                            # In the end this is all we care about, we don't differenciate N_H=2 from N_H=1
+                            dataset=dataset,
+                            multiplicity = np.ones_like(ak.num(fatjet[tmp_sel], axis=1)),
+                            weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
+                        )
+
+                        #output['b_DeltaR_vs_H_pt_BL'].fill(
+                        #    dataset=dataset,
+                        #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
+                        #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
+                        #    #weight = weight.weight()[base_sel&(ak.num(bquark)==2)]
+                        #)
+                        output['b_DeltaR_vs_H_pt'].fill(
+                            dataset=dataset,
+                            pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
+                            phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
+                            #weight = weight.weight()[tmp_sel&(ak.num(bquark)==2)]
+                        )
+
+                        for i in lheweight_ratio.keys():
+                            weight = Weights(len(events))
+                            weight.add("NH>0", np.nan_to_num(1-ak.prod(1-w_all, axis=1), 0))
+                            weight.add("LHE_weights", lheweight_ratio[i])
+
+                            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+
+                            output["MT_vs_sdmass_LHE"].fill(
+                                dataset=dataset,
+                                variation=str(i),
+                                mt=min_mt_AK8_MET[tmp_sel],
+                                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                                weight = weight.weight()[tmp_sel]
+                            )
         
-            nb_in_fat = match_count(fatjet, bquark, deltaRCut=0.8)
-            nhiggs_in_fat = match_count(fatjet, higgs, deltaRCut=0.8)
-            zerohiggs = (nhiggs_in_fat==0)
-            onehiggs = (nhiggs_in_fat==1)
-
-            zerob = ((nb_in_fat==0) & (zerohiggs))  # verified to work!
-            oneb  = ((nb_in_fat==1) & (zerohiggs))  # verified to work!
-            twob  = ((nb_in_fat>=2) & (zerohiggs))  # verified to work!
-
-            w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)
-            w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)
-            w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)
-            w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)
-
-            w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
-            if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
-    #        np.isnan(sum(ak.flatten(w_1h * onehiggs))):
-                w_all = w_all + w_1h * onehiggs
-
-            #MET
-
-            met_pt = ak.flatten(events.metpuppi_pt)
-            genmet_pt = ak.flatten(events.genmet_pt)
-            met_phi = ak.flatten(events.metpuppi_phi)
-
-            mt_AK8_MET = mt(fatjet.pt, fatjet.phi, met_pt, met_phi)
-            min_mt_AK8_MET = ak.to_numpy(ak.min(mt_AK8_MET, axis=1))
-            min_dphi_AK8_MET = ak.to_numpy(ak.min(np.arccos(np.cos(fatjet.phi-met_phi)), axis=1))
-            min_dphi_AK4_MET = ak.to_numpy(ak.min(np.arccos(np.cos(jet.phi-met_phi)), axis=1))
-            #min_dphi_AK4clean_MET = ak.to_numpy(ak.min(np.arccos(np.cos(extrajet.phi-met_phi)), axis=1))  
-
-
-            #selections
-            selection = PackedSelection()
-
-            if dataset == 'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU':
-                selection.add('overlap', (ttbar.mass>1000))
-            elif dataset == 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU':
-                selection.add('overlap', (ttbar.mass<1000))
-            elif dataset == 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
-                selection.add('overlap', genmet_pt>100)
-            elif dataset == 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
-                selection.add('overlap', genmet_pt<100)
-            else:
-                selection.add('overlap', met_pt>0) # NOTE: this is a dummy selection that should always evaluate to true
-
-            selection.add('single_lep', ((ak.num(ele_l, axis=1)>0) | (ak.num(muon_l, axis=1)>0) | (ak.num(tau_l, axis=1)>0)))
-            selection.add('ele_veto', ak.num(ele_l, axis=1)==0)
-            selection.add('mu_veto',  ak.num(muon_l, axis=1)==0)
-            selection.add('tau_veto', ak.num(tau_l, axis=1)==0)
-            selection.add('met',      met_pt>300)
-            selection.add('nAK4',     ak.num(jet, axis=1)>1)
-            selection.add('nAK8',     ak.num(fatjet, axis=1)>0)
-            selection.add('min_AK8_pt', ak.min(fatjet.pt, axis=1)>300)
-            selection.add('dphi_AK8_MET>1', min_dphi_AK8_MET>1.0)
-            selection.add('dphi_AK4_MET<3', min_dphi_AK4_MET<3.0)
-            selection.add('dphi_AK4_MET>1', min_dphi_AK4_MET>1.0)
-            selection.add('AK4_QCD_veto', AK4_QCD_veto)
-            selection.add('AK8_QCD_veto', AK8_QCD_veto)
-            selection.add('on_H',     on_h)
-            selection.add('MT>600',   min_mt_AK8_MET>600)
-            selection.add('MT>1200',   min_mt_AK8_MET>1200)
-
-
-            #weights
-
-            weight = Weights(len(events))
-            weight.add("NH>0", np.nan_to_num(1-ak.prod(1-w_all, axis=1), 0))
-
-            #outputs
-
-            baseline = [
-                'overlap',
-                'ele_veto',
-                'mu_veto',
-                'tau_veto',
-                'met',
-                'nAK8',
-            ]
-
-            tight = [
-                'overlap',
-                'ele_veto',
-                'mu_veto',
-                'tau_veto',
-                'met',
-                'nAK8',
-                'nAK4',
-                'min_AK8_pt',
-                'dphi_AK8_MET>1',
-                'dphi_AK4_MET<3',
-                'dphi_AK4_MET>1',
-                'AK4_QCD_veto',
-                'AK8_QCD_veto',
-                'on_H',
-                'MT>600',
-                'MT>1200',
-            ]
-
-            single_lep = [
-                'overlap',
-                'single_lep',
-                'met',
-                'nAK8',
-                'nAK4',
-                'min_AK8_pt',
-                'dphi_AK8_MET>1',
-                'dphi_AK4_MET<3',
-                'dphi_AK4_MET>1',
-                'AK4_QCD_veto',
-                'AK8_QCD_veto',
-                'on_H',
-                'MT>600',
-                'MT>1200',
-            ]
-
-            base_sel = n_minus_one(selection, baseline, [])
-            tight_sel = n_minus_one(selection, tight, [])
-
-            output['cutflow'][dataset]['total'] += len(events)
-            output['cutflow'][dataset]['lepton_veto'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
-            output['cutflow'][dataset]['MET>300'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
-            output['cutflow'][dataset]['N_AK8>0'] += len(events[base_sel])
-            output['cutflow'][dataset]['N_AK4>1'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt','dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['min_AK8_pt'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1','dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['dphi_AK8_MET>1'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1','AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['1<dphi_AK4_MET<3'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto','AK8_QCD_veto','on_H','MT>600','MT>1200',])])
-            output['cutflow'][dataset]['AK4_QCD_veto'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto','on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['AK8_QCD_veto'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['N_H>0'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['on_H'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])])
-            output['cutflow'][dataset]['MT>600'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])])
-            output['cutflow'][dataset]['MT>1200'] += sum(weight.weight()[tight_sel])
-            
-
-            output['cutflow'][dataset]['total_w2'] += len(events)
-            output['cutflow'][dataset]['lepton_veto_w2'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
-            output['cutflow'][dataset]['MET>300_w2'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
-            output['cutflow'][dataset]['N_AK8>0_w2'] += len(events[base_sel])
-            output['cutflow'][dataset]['N_AK4>1_w2'] += len(events[n_minus_one(selection, tight, ['min_AK8_pt', 'dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['min_AK8_pt_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['dphi_AK8_MET>1_w2'] += len(events[n_minus_one(selection, tight, ['dphi_AK4_MET<3','dphi_AK4_MET>1', 'AK4_QCD_veto_w2', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['1<dphi_AK4_MET<3_w2'] += len(events[n_minus_one(selection, tight, ['AK4_QCD_veto', 'AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['AK4_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['AK8_QCD_veto', 'on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['AK8_QCD_veto_w2'] += len(events[n_minus_one(selection, tight, ['on_H','MT>600','MT>1200'])])
-            output['cutflow'][dataset]['N_H>0_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['on_H','MT>600', 'MT>1200'])]**2)
-            output['cutflow'][dataset]['on_H_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])]**2)
-            output['cutflow'][dataset]['MT>600_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])]**2)
-            output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
-            
-
-            tmp_base_sel = n_minus_one(selection, baseline, ['met'])
-            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-            output["met_pt"].fill(
-                dataset=dataset,
-                pt=met_pt[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-            output["genmet_pt"].fill(
-                dataset=dataset,
-                pt=genmet_pt[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
-
-#            tmp_sel = n_minus_one(selection, baseline, ['met', 'nAK8', 'overlap'])
-            output["genmet_pt_inclusive"].fill(
-                dataset=dataset,
-                pt=genmet_pt,
-                weight = weight.weight()
-            )
-
-            if dataset.count('TT_'):
-                tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
-                output["Mtt"].fill(
-                    dataset=dataset,
-                    pt=ttbar.mass[tmp_sel],
-                    weight = weight.weight()[tmp_sel]
-                )
-                tmp_sel = n_minus_one(selection, baseline, ['overlap'])
-                output["Mtt_inclusive"].fill(
-                    dataset=dataset,
-                    pt=ttbar.mass[tmp_sel],
-                    weight = weight.weight()[tmp_sel]
-                )
-
-            tmp_sel = n_minus_one(selection, tight, ['dphi_AK8_MET>1', 'MT>1200'])
-            output["dphi_AK8_MET"].fill(
-                dataset=dataset,
-                phi=min_dphi_AK8_MET[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['dphi_AK4_MET<3', 'dphi_AK4_MET>1', 'MT>1200'])
-            output["dphi_AK4_MET"].fill(
-                dataset=dataset,
-                phi=min_dphi_AK4_MET[tmp_sel],
-                weight = weight.weight()[tmp_sel]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['AK4_QCD_veto', 'MT>1200'])
-            output["AK4_QCD_veto"].fill(
-                dataset=dataset,
-                phi=ak.flatten(dphi_dijet[tmp_sel & (ak.num(jet)>1)][:,0:1]),
-                weight = weight.weight()[tmp_sel & (ak.num(jet)>1)]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['AK8_QCD_veto', 'MT>1200'])
-            output["AK8_QCD_veto"].fill(
-                dataset=dataset,
-                phi=ak.flatten(dphi_difatjet[tmp_sel & (ak.num(fatjet)>1)][:,0:1]),
-                weight = weight.weight()[tmp_sel & (ak.num(fatjet)>1)]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
-            output["AK8_sdmass"].fill(
-                dataset=dataset,
-                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                weight = weight.weight()[tmp_sel]
-            )
-
-            output["MT_vs_sdmass_BL"].fill(
-                dataset=dataset,
-                mt=min_mt_AK8_MET[base_sel],
-                mass=ak.flatten(lead_fatjet.mass[base_sel]),
-                weight = weight.weight()[base_sel]
-            )
-            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
-            output["MT_vs_sdmass"].fill(
-                dataset=dataset,
-                mt=min_mt_AK8_MET[tmp_sel],
-                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                weight = weight.weight()[tmp_sel]
-            )
-            #output["MT_vs_sdmass"+'_'+var].fill(
-            #    dataset=dataset,
-            #    mt=min_mt_AK8_MET[tmp_sel],
-            #    mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-            #    weight = weight.weight()[tmp_sel]
-            #)
-
-            tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
-            output["n_AK4"].fill(
-                dataset=dataset,
-                multiplicity=ak.num(jet[tmp_sel]),
-                weight = weight.weight()[tmp_sel]
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['min_AK8_pt', 'MT>1200'])
-            output["min_AK8_pt"].fill(
-                dataset=dataset,
-                pt=ak.min(fatjet.pt[tmp_sel], axis=1),
-                weight = weight.weight()[tmp_sel]
-            )
-
-            #output['NH_weight_BL'].fill(
-            #    dataset=dataset,
-            #    multiplicity = np.zeros_like(ak.num(fatjet[base_sel], axis=1)),
-            #    weight = np.nan_to_num(ak.prod(1-w_all[base_sel], axis=1), 0),
-            #)
-            #output['NH_weight_BL'].fill(
-                # This already includes the overflow, so everything >0.
-                # In the end this is all we care about, we don't differenciate N_H=2 from N_H=1
-            #    dataset=dataset,
-            #    multiplicity = np.ones_like(ak.num(fatjet[base_sel], axis=1)),
-            #    weight = np.nan_to_num(1-ak.prod(1-w_all[base_sel], axis=1), 0),
-            #)
-
-            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>600', 'MT>1200'])
-            output['MT'].fill(
-                dataset=dataset,
-                mt = min_mt_AK8_MET[tmp_sel],
-            )
-            tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
-            output['MT_single_lep'].fill(
-                dataset=dataset,
-                mt = min_mt_AK8_MET[tmp_sel],
-            )
-
-            tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
-            output['NH_weight'].fill(
-                dataset=dataset,
-                multiplicity = np.zeros_like(ak.num(fatjet[tmp_sel], axis=1)),
-                weight = np.nan_to_num(ak.prod(1-w_all[tmp_sel], axis=1), 0),
-            )
-            output['NH_weight'].fill(
-                # This already includes the overflow, so everything >0.
-                # In the end this is all we care about, we don't differenciate N_H=2 from N_H=1
-                dataset=dataset,
-                multiplicity = np.ones_like(ak.num(fatjet[tmp_sel], axis=1)),
-                weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
-            )
-
-            #tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
-            #output['b_DeltaR_vs_H_pt_BL'].fill(
-            #    dataset=dataset,
-            #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
-            #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
-            #    #weight = weight.weight()[base_sel&(ak.num(bquark)==2)]
-            #)
-            #output['b_DeltaR_vs_H_pt'].fill(
-            #    dataset=dataset,
-            #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
-            #    phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
-            #    #weight = weight.weight()[tmp_sel&(ak.num(bquark)==2)]
-            #)
-
         return output
 
     def postprocess(self, accumulator):
@@ -745,6 +881,10 @@ if __name__ == '__main__':
             'TT': {
                 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU': samples['TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU']['skim'],
                 'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU': samples['TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU']['skim'],
+                'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU': samples['ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU']['skim'],
+                'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU': samples['ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU']['skim'],
+                'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': samples['ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU']['skim'],
+                'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': samples['ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU']['skim'],
             },
             'Z': {
                 'ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU': samples['ZJetsToNuNu_HT-100To200_14TeV-madgraph_200PU']['skim'],
@@ -773,28 +913,74 @@ if __name__ == '__main__':
                 'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU': samples['ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU']['skim'],
                 'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': samples['WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU']['skim'],
                 'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': samples['WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU']['skim'],
-                'ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU': samples['ST_tch_14TeV_top_incl-powheg-pythia8-madspin_200PU']['skim'],
-                'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU': samples['ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU']['skim'],
-                'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': samples['ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU']['skim'],
-                'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': samples['ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU']['skim'],
             },
             'signal': {
+                #m_a=150
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000']['ntuples'],
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
                 '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500']['ntuples'],
+                #m_a=750
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250']['ntuples'],
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
-                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600']['ntuples'],
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
-                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900']['ntuples'],
                 '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900']['ntuples'],
                 '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250']['ntuples'],
+                #m_a=250
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250']['ntuples'],
+                #m_a=500
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250': samples['2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000']['ntuples'],
+                '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250': samples['2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250']['ntuples'],
             },
         }
 
         if args.run == 'all':
-            fileset = { name: fileset_all[name] for name in fileset_all.keys() }
+            fileset={}
+            for name in fileset_all.keys():
+                fileset.update(fileset_all[name])
         else:
             fileset = fileset_all[args.run]
-
+            
         meta_accumulator = {}
         for sample in fileset:
             if sample not in meta_accumulator:
@@ -825,7 +1011,7 @@ if __name__ == '__main__':
             # but what can we do.
             # W+jets should be as close as it gets for the extra radiation for diboson
             # signal sample for the SM Higgs samples
-            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU': 'WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8',
+            'ZH_HToBB_ZToNuNu_M125_13TeV_powheg_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             'WminusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             'WplusH_HToBB_WToLNu_M125_14TeV_powheg_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             'VVTo2L2Nu_14TeV_amcatnloFXFX_madspin_pythia8_200PU': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
@@ -833,18 +1019,62 @@ if __name__ == '__main__':
             'ST_tch_14TeV_antitop_incl-powheg-pythia8-madspin_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_t-channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV-powheg-madspin-pythia8',
             'ST_tW_top_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8',
             'ST_tW_antitop_5f_inclusiveDecays_14TeV-powheg-pythia8_TuneCUETP8M1_200PU': 'TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8',  #'ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8',
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+           '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
-            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',    
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',    
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250': 'ttHTobb_M125_TuneCP5_13TeV-powheg-pythia8',
         }
         
         effs = {}
-        for s in fileset.keys():
+        for s in fileset.keys() :
             effs[s] = {}
             for b in ['0b', '1b', '2b', '1h']:
                 effs[s][b] = Hist2D.from_json(os.path.expandvars("../data/htag/eff_%s_%s.json"%(run2_to_delphes[s],b)))
@@ -864,24 +1094,59 @@ if __name__ == '__main__':
         outfile = os.path.join(args.outdir, f"output_{args.run}_run{timestamp}.coffea")
         util.save(output_flat, outfile)
 
-        #import cloudpickle
-        #import gzip
-        #outname = 'cutflow'
-        #os.system("mkdir -p histos/")
-        #print('Saving output in %s...'%("histos/" + outname + ".pkl.gz"))
-        #with gzip.open("histos/" + outname + ".pkl.gz", "wb") as fout:
-        #    cloudpickle.dump(output_flat, fout)
-        #print('Done!')
-
         signal = [
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_150_MH2_1000_MHC_1000',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_150_MH2_1500_MHC_1500',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900',
             '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_750_MH2_1250_MHC_1250',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_750_MH2_1500_MHC_1500',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_750_MH2_1600_MHC_1600',
             '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_750_MH2_1750_MHC_1750',
-            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000'
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_750_MH2_1900_MHC_1900',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_750_MH2_2000_MHC_2000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_750_MH2_2250_MHC_2250',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_750_MH4_250_MH2_750_MHC_750',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_250_MH2_1000_MHC_1000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_250_MH2_1250_MHC_1250',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_250_MH2_1500_MHC_1500',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_250_MH2_1600_MHC_1600',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_250_MH2_1750_MHC_1750',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_250_MH2_1900_MHC_1900',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_250_MH2_2000_MHC_2000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_250_MH2_2250_MHC_2250',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000',
+            '2HDMa_bb_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1000_MH4_500_MH2_1000_MHC_1000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1250_MH4_500_MH2_1250_MHC_1250',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1500_MH4_500_MH2_1500_MHC_1500',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1600_MH4_500_MH2_1600_MHC_1600',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1750_MH4_500_MH2_1750_MHC_1750',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_1900_MH4_500_MH2_1900_MHC_1900',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2000_MH4_500_MH2_2000_MHC_2000',
+            '2HDMa_gg_sinp_0.35_tanb_1.0_mXd_10_MH3_2250_MH4_500_MH2_2250_MHC_2250',
         ]
         
         nevents = {}
@@ -906,20 +1171,12 @@ if __name__ == '__main__':
         scaled_output = {}
         
         for key in output_flat.keys():
-            if type(output_flat[key]) is not type(output_flat['cutflow']):
+            #if type(output_flat[key]) is not type(output_flat['cutflow']):
+            if type(output_flat[key]) is type(output_flat['b_DeltaR_vs_H_pt']):
                 scaled_output[key] = scale_and_merge_histos(output_flat[key], meta, fileset, lumi=3000)
 
         outfile = os.path.join(args.outdir, f"output_{args.run}_scaled_run{timestamp}.coffea")
         util.save(scaled_output, outfile)
-        
-        #import cloudpickle
-        #import gzip
-        #outname = 'scaled_output'
-        #os.system("mkdir -p histos/")
-        #print('Saving output in %s...'%("histos/" + outname + ".pkl.gz"))
-        #with gzip.open("histos/" + outname + ".pkl.gz", "wb") as fout:
-        #    cloudpickle.dump(scaled_output, fout)
-        #print('Done!')
 
         raise NotImplementedError
 
@@ -954,23 +1211,22 @@ if __name__ == '__main__':
 
         plot_dir = '/home/users/$USER/public_html/HbbMET/plots/Jan24/'
         
-        #need to add order to the plots
-        makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'met_pt', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'met_pt_BL', 'pt', met_bins, r'$MET_{pt}\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'dphi_AK4_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'dphi_AK4_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'dphi_AK4_MET_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'dphi_AK8_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'dphi_AK8_MET', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'dphi_AK8_MET_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK4_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK4_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK4_QCD_veto_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK8_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK8_QCD_veto', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK8_QCD_veto_BL', 'phi', phi_bins2, r'$\Delta\varphi$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'AK8_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'AK8_sdmass', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'AK8_sdmass_BL', 'mass', mass_bins, r'$softdrop\ mass\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'n_AK4', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'n_AK4', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'n_AK4_BL', 'multiplicity', N_bins2, r'$N_{AK4}$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'min_AK8_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'min_AK8_pt', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'min_AK8_pt_BL', 'pt', pt_bins, r'$p_{T}\ (GeV)$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'NH_weight', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
         #makePlot2(scaled_output, 'NH_weight_BL', 'multiplicity', N_H_bins, r'$N_{H-tagged}$', labels, colors, signals, plot_dir)
-        makePlot2(scaled_output, 'MT', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals, plot_dir)
+        #makePlot2(scaled_output, 'MT', 'mt', mt_bins, r'$M_{T}$', labels, colors, signals, plot_dir)
