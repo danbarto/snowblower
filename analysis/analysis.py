@@ -198,6 +198,12 @@ class FlatProcessor(processor.ProcessorABC):
                 mt_bins,
                 mass_bins2,
             ),
+            "MT_vs_sdmass_jmr": hist.Hist(
+                "Events",
+                hist.Cat("dataset", "Dataset"),
+                mt_bins,
+                mass_bins2,
+            ),
             #"AK8_sdmass_BL": hist.Hist(
             #    "Events",
             #    hist.Cat("dataset", "Dataset"),
@@ -390,18 +396,18 @@ class FlatProcessor(processor.ProcessorABC):
         dibquark = choose(bquark, 2)
         b_DeltaR = delta_r(dibquark['0'], dibquark['1'])
 
+        #find some easy way to list all the datasets that are in signal?
         lheweights = events.lheweight_val
         lheweight_ratio = {}
         for i in range(363,463):
-            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,362]
+            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
         for i in [463,464]:
-            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,363]
+            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
         for i in [5, 10, 15, 20, 30, 40]:
             lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
         
-        variations = ['', 'up', 'down']
+        variations = ['', '_up', '_down']
         for var in variations:
-        
             #jets
             old_jet = getJets(events, jes_corrector, '')
 
@@ -430,70 +436,76 @@ class FlatProcessor(processor.ProcessorABC):
             # Objects are defined here: https://twiki.cern.ch/twiki/bin/view/CMS/DelphesInstructions
             # restrict abs(eta) to 2.8 (whatever the tracker acceptance of PhaseII CMS is)
 
-            fatjet = getFatjets(events, jes_corrector, var)
-
-            fatjet = fatjet[np.abs(fatjet.eta) < 3] #eta within tracker range        
-            fatjet = fatjet[~match(fatjet, ele_l, deltaRCut=0.8)] #remove electron overlap
-            fatjet = fatjet[~match(fatjet, muon_l, deltaRCut=0.8)] #remove muon overlap
-
-            extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
-            extrabtag = extrajet[extrajet.btag>0] #loose wp for now
-
-            tau21 = np.divide(fatjet.tau2, fatjet.tau1)
-
-            fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
-            on_h = (ak.num(fatjet_on_h) > 0)
-
-            lead_fatjet = fatjet[:,0:1]
-
-            difatjet = choose(fatjet, 2)
-            dijet = choose(jet[:,:4], 2)  # only take the 4 leading jets
-            #di_AK8_AK4 = cross(extrajet, fatjet)
-
-            dphi_difatjet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
-            dphi_dijet = np.arccos(np.cos(dijet['0'].phi-dijet['1'].phi))
-            #dphi_AK8_AK4 = np.arccos(np.cos(di_AK8_AK4['0'].phi-di_AK8_AK4['1'].phi)) # not back-to-back
-            AK8_QCD_veto = ak.all(dphi_difatjet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK8 (ak.all!)
-            AK4_QCD_veto = ak.all(dphi_dijet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK4 (ak.all!)
-            #min_dphi_AK8_AK4 = ak.to_numpy(ak.min(dphi_AK8_AK4, axis=1))
-        
-            #MET
-
-            met_pt = ak.flatten(events.metpuppi_pt)
-            genmet_pt = ak.flatten(events.genmet_pt)
-            met_phi = ak.flatten(events.metpuppi_phi)
-
-            met_px = met_pt*np.cos(met_phi)
-            met_py = met_pt*np.sin(met_phi)
-            met_px_new = met_px - ak.sum(jet_px-jet_px_old, axis=1)
-            met_py_new = met_py - ak.sum(jet_py-jet_py_old, axis=1)
-            met_pt = np.sqrt(met_px_new**2+met_py_new**2)
-            
-            mt_AK8_MET = mt(fatjet.pt, fatjet.phi, met_pt, met_phi)
-            min_mt_AK8_MET = ak.to_numpy(ak.min(mt_AK8_MET, axis=1))
-            min_dphi_AK8_MET = ak.to_numpy(ak.min(np.arccos(np.cos(fatjet.phi-met_phi)), axis=1))
-            min_dphi_AK4_MET = ak.to_numpy(ak.min(np.arccos(np.cos(jet.phi-met_phi)), axis=1))
-            #min_dphi_AK4clean_MET = ak.to_numpy(ak.min(np.arccos(np.cos(extrajet.phi-met_phi)), axis=1))  
-            
-            nb_in_fat = match_count(fatjet, bquark, deltaRCut=0.8)
-            nhiggs_in_fat = match_count(fatjet, higgs, deltaRCut=0.8)
-            zerohiggs = (nhiggs_in_fat==0)
-            onehiggs = (nhiggs_in_fat==1)
-
-            zerob = ((nb_in_fat==0) & (zerohiggs))  # verified to work!
-            oneb  = ((nb_in_fat==1) & (zerohiggs))  # verified to work!
-            twob  = ((nb_in_fat>=2) & (zerohiggs))  # verified to work!
-
-            
+            resolutions = ['']
             if var == '':
-                for tagger in ['', '_0b_up', '_0b_down', '_1b_up', '_1b_down', '_2b_up', '_2b_down', '_1h_up', '_1h_down']:
+                resolutions = ['', [0.05,0.1]]
+            for res in resolutions:                
+                fatjet = getFatjets(events, jes_corrector, var, res)
+
+                fatjet = fatjet[np.abs(fatjet.eta) < 3] #eta within tracker range        
+                fatjet = fatjet[~match(fatjet, ele_l, deltaRCut=0.8)] #remove electron overlap
+                fatjet = fatjet[~match(fatjet, muon_l, deltaRCut=0.8)] #remove muon overlap
+
+                extrajet  = jet[~match(jet, fatjet, deltaRCut=1.2)] # remove AK4 jets that overlap with AK8 jets
+                extrabtag = extrajet[extrajet.btag>0] #loose wp for now
+
+                tau21 = np.divide(fatjet.tau2, fatjet.tau1)
+
+                fatjet_on_h = fatjet[np.abs(fatjet.mass-125)<25]
+                on_h = (ak.num(fatjet_on_h) > 0)
+
+                lead_fatjet = fatjet[:,0:1]
+
+                difatjet = choose(fatjet, 2)
+                dijet = choose(jet[:,:4], 2)  # only take the 4 leading jets
+                #di_AK8_AK4 = cross(extrajet, fatjet)
+
+                dphi_difatjet = np.arccos(np.cos(difatjet['0'].phi-difatjet['1'].phi))
+                dphi_dijet = np.arccos(np.cos(dijet['0'].phi-dijet['1'].phi))
+                #dphi_AK8_AK4 = np.arccos(np.cos(di_AK8_AK4['0'].phi-di_AK8_AK4['1'].phi)) # not back-to-back
+                AK8_QCD_veto = ak.all(dphi_difatjet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK8 (ak.all!)
+                AK4_QCD_veto = ak.all(dphi_dijet<3.0, axis=1)  # veto any event with a back-to-back dijet system. No implicit cut on N_AK4 (ak.all!)
+                #min_dphi_AK8_AK4 = ak.to_numpy(ak.min(dphi_AK8_AK4, axis=1))
+
+                #MET
+
+                met_pt = ak.flatten(events.metpuppi_pt)
+                genmet_pt = ak.flatten(events.genmet_pt)
+                met_phi = ak.flatten(events.metpuppi_phi)
+
+                met_px = met_pt*np.cos(met_phi)
+                met_py = met_pt*np.sin(met_phi)
+                met_px_new = met_px - ak.sum(jet_px-jet_px_old, axis=1)
+                met_py_new = met_py - ak.sum(jet_py-jet_py_old, axis=1)
+                met_pt = np.sqrt(met_px_new**2+met_py_new**2)
+
+                mt_AK8_MET = mt(fatjet.pt, fatjet.phi, met_pt, met_phi)
+                min_mt_AK8_MET = ak.to_numpy(ak.min(mt_AK8_MET, axis=1))
+                min_dphi_AK8_MET = ak.to_numpy(ak.min(np.arccos(np.cos(fatjet.phi-met_phi)), axis=1))
+                min_dphi_AK4_MET = ak.to_numpy(ak.min(np.arccos(np.cos(jet.phi-met_phi)), axis=1))
+                #min_dphi_AK4clean_MET = ak.to_numpy(ak.min(np.arccos(np.cos(extrajet.phi-met_phi)), axis=1))  
+
+                nb_in_fat = match_count(fatjet, bquark, deltaRCut=0.8)
+                nhiggs_in_fat = match_count(fatjet, higgs, deltaRCut=0.8)
+                zerohiggs = (nhiggs_in_fat==0)
+                onehiggs = (nhiggs_in_fat==1)
+
+                zerob = ((nb_in_fat==0) & (zerohiggs))  # verified to work!
+                oneb  = ((nb_in_fat==1) & (zerohiggs))  # verified to work!
+                twob  = ((nb_in_fat>=2) & (zerohiggs))  # verified to work!
+
+
+                taggers = ['']
+                if (var == '') and (res == ''):
+                    taggers = ['', '_0b_up', '_0b_down', '_1b_up', '_1b_down', '_2b_up', '_2b_down', '_1h_up', '_1h_down']
+                for tagger in taggers:
                     w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)
                     w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)
                     w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)
                     w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)
-                    
+
                     if tagger == '_0b_up':
-                         w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*1.05
+                        w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*1.05
                     if tagger == '_0b_down':
                          w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*0.95
                     if tagger == '_1b_up':
@@ -512,7 +524,7 @@ class FlatProcessor(processor.ProcessorABC):
                     w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
                     if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
                         w_all = w_all + w_1h * onehiggs
-            
+
                     #selections
                     selection = PackedSelection()
 
@@ -600,16 +612,25 @@ class FlatProcessor(processor.ProcessorABC):
                     base_sel = n_minus_one(selection, baseline, [])
                     tight_sel = n_minus_one(selection, tight, [])
                     
-                    tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+                    if res == '':
+                        tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+                        output["MT_vs_sdmass"+var+tagger].fill(
+                            dataset=dataset,
+                            mt=min_mt_AK8_MET[tmp_sel],
+                            mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                            weight = weight.weight()[tmp_sel]
+                        )
                     
-                    output["MT_vs_sdmass"+var+tagger].fill(
-                        dataset=dataset,
-                        mt=min_mt_AK8_MET[tmp_sel],
-                        mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                        weight = weight.weight()[tmp_sel]
-                    )
+                    if (tagger == '') and (res != ''):            
+                            tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
+                            output["MT_vs_sdmass_jmr"].fill(
+                                dataset=dataset,
+                                mt=min_mt_AK8_MET[tmp_sel],
+                                mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
+                                weight = weight.weight()[tmp_sel]
+                            )
 
-                    if tagger == '':
+                    if (var == '') and (tagger == '') and (res == ''):
                         output['cutflow'][dataset]['total'] += len(events)
                         output['cutflow'][dataset]['lepton_veto'] += len(events[n_minus_one(selection, baseline, ['met', 'nAK8'])])
                         output['cutflow'][dataset]['MET>300'] += len(events[n_minus_one(selection, baseline, ['nAK8'])])
@@ -639,7 +660,7 @@ class FlatProcessor(processor.ProcessorABC):
                         output['cutflow'][dataset]['on_H_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>600','MT>1200'])]**2)
                         output['cutflow'][dataset]['MT>600_w2'] += sum(weight.weight()[n_minus_one(selection, tight, ['MT>1200'])]**2)
                         output['cutflow'][dataset]['MT>1200_w2'] += sum(weight.weight()[tight_sel]**2)
-                        
+
                         tmp_base_sel = n_minus_one(selection, baseline, ['met'])
                         tmp_sel = n_minus_one(selection, tight, ['met', 'MT>1200'])
                         output["met_pt"].fill(
@@ -654,7 +675,7 @@ class FlatProcessor(processor.ProcessorABC):
                             pt=genmet_pt[tmp_sel],
                             weight = weight.weight()[tmp_sel]
                         )
-                        
+
                         tmp_sel = n_minus_one(selection, baseline, ['met', 'nAK8', 'overlap'])
                         output["genmet_pt_inclusive"].fill(
                             dataset=dataset,
@@ -669,6 +690,7 @@ class FlatProcessor(processor.ProcessorABC):
                                 pt=ttbar.mass[tmp_sel],
                                 weight = weight.weight()[tmp_sel]
                             )
+                            
                             tmp_sel = n_minus_one(selection, baseline, ['overlap'])
                             output["Mtt_inclusive"].fill(
                                 dataset=dataset,
@@ -717,6 +739,7 @@ class FlatProcessor(processor.ProcessorABC):
                             mass=ak.flatten(lead_fatjet.mass[base_sel]),
                             weight = weight.weight()[base_sel]
                         )
+                            
                         tmp_sel = n_minus_one(selection, tight, ['nAK4', 'MT>1200'])
                         output["n_AK4"].fill(
                             dataset=dataset,
@@ -748,11 +771,14 @@ class FlatProcessor(processor.ProcessorABC):
                         output['MT'].fill(
                             dataset=dataset,
                             mt = min_mt_AK8_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel],
                         )
+                       
                         tmp_sel = n_minus_one(selection, single_lep, ['on_H', 'MT>600', 'MT>1200'])
                         output['MT_single_lep'].fill(
                             dataset=dataset,
                             mt = min_mt_AK8_MET[tmp_sel],
+                            weight = weight.weight()[tmp_sel],
                         )
 
                         tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
@@ -769,7 +795,6 @@ class FlatProcessor(processor.ProcessorABC):
                             weight = np.nan_to_num(1-ak.prod(1-w_all[tmp_sel], axis=1), 0),
                         )
 
-                        tmp_sel = n_minus_one(selection, tight, ['MT>1200'])
                         #output['b_DeltaR_vs_H_pt_BL'].fill(
                         #    dataset=dataset,
                         #    pt = pad_and_flatten(higgs.pt[(ak.num(bquark)==2)]),
@@ -782,12 +807,12 @@ class FlatProcessor(processor.ProcessorABC):
                             phi = ak.flatten(b_DeltaR[(ak.num(bquark)==2)]),
                             #weight = weight.weight()[tmp_sel&(ak.num(bquark)==2)]
                         )
-                        
+
                         for i in lheweight_ratio.keys():
                             weight = Weights(len(events))
                             weight.add("NH>0", np.nan_to_num(1-ak.prod(1-w_all, axis=1), 0))
                             weight.add("LHE_weights", lheweight_ratio[i])
-                            
+
                             tmp_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200', 'MT>600'])
 
                             output["MT_vs_sdmass_LHE"].fill(
@@ -797,82 +822,6 @@ class FlatProcessor(processor.ProcessorABC):
                                 mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
                                 weight = weight.weight()[tmp_sel]
                             )
-                        
-            elif var == 'up' or var == 'down':
-                w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)
-                w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)
-                w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)
-                w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)
-                
-                w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
-                if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
-                    w_all = w_all + w_1h * onehiggs
-                    
-                #selections
-                selection = PackedSelection()
-
-                if dataset == 'TT_Mtt1000toInf_TuneCUETP8M1_14TeV-powheg-pythia8_200PU':
-                    selection.add('overlap', (ttbar.mass>1000))
-                elif dataset == 'TT_TuneCUETP8M2T4_14TeV-powheg-pythia8_200PU':
-                    selection.add('overlap', (ttbar.mass<1000))
-                elif dataset == 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
-                    selection.add('overlap', genmet_pt>100)
-                elif dataset == 'WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU':
-                    selection.add('overlap', genmet_pt<100)
-                else:
-                    selection.add('overlap', met_pt>0) # NOTE: this is a dummy selection that should always evaluate to true
-
-                selection.add('single_lep', ((ak.num(ele_l, axis=1)>0) | (ak.num(muon_l, axis=1)>0) | (ak.num(tau_l, axis=1)>0)))
-                selection.add('ele_veto', ak.num(ele_l, axis=1)==0)
-                selection.add('mu_veto',  ak.num(muon_l, axis=1)==0)
-                selection.add('tau_veto', ak.num(tau_l, axis=1)==0)
-                selection.add('met',      met_pt>300)
-                selection.add('nAK4',     ak.num(jet, axis=1)>1)
-                selection.add('nAK8',     ak.num(fatjet, axis=1)>0)
-                selection.add('min_AK8_pt', ak.min(fatjet.pt, axis=1)>300)
-                selection.add('dphi_AK8_MET>1', min_dphi_AK8_MET>1.0)
-                selection.add('dphi_AK4_MET<3', min_dphi_AK4_MET<3.0)
-                selection.add('dphi_AK4_MET>1', min_dphi_AK4_MET>1.0)
-                selection.add('AK4_QCD_veto', AK4_QCD_veto)
-                selection.add('AK8_QCD_veto', AK8_QCD_veto)
-                selection.add('on_H',     on_h)
-                selection.add('MT>600',   min_mt_AK8_MET>600)
-                selection.add('MT>1200',   min_mt_AK8_MET>1200)
-
-                #weights
-
-                weight = Weights(len(events))
-                weight.add("NH>0", np.nan_to_num(1-ak.prod(1-w_all, axis=1), 0))
-
-                #outputs
-
-                tight = [
-                    'overlap',
-                    'ele_veto',
-                    'mu_veto',
-                    'tau_veto',
-                    'met',
-                    'nAK8',
-                    'nAK4',
-                    'min_AK8_pt',
-                    'dphi_AK8_MET>1',
-                    'dphi_AK4_MET<3',
-                    'dphi_AK4_MET>1',
-                    'AK4_QCD_veto',
-                    'AK8_QCD_veto',
-                    'on_H',
-                    'MT>600',
-                    'MT>1200',
-                ]
-
-                tight_sel = n_minus_one(selection, tight, ['on_H', 'MT>1200'])
-                    
-                output["MT_vs_sdmass"+'_'+var].fill(
-                    dataset=dataset,
-                    mt=min_mt_AK8_MET[tmp_sel],
-                    mass=ak.flatten(lead_fatjet.mass[tmp_sel]),
-                    weight = weight.weight()[tmp_sel]
-                )
         
         return output
 

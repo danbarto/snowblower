@@ -1,13 +1,14 @@
 from tools.helpers import get_four_vec_fromPtEtaPhiM
+from tools.jmr import JMR
 
 #can add pt and eta cuts in later
 
-def getJets(events, corrector, pt_var=''):
+def getJets(events, corrector, pt_var='', scale_res = ''):
     """takes a set of events and a set of weights and
     weights the jet pts of those events according to
     the variation given."""
 
-    jet_presel = (events.jetpuppi_pt>20)  # NOTE: careful with this presel, but needed to speed up the procssor
+    jet_presel = (events.jetpuppi_pt>20)  # NOTE: careful with this presel, but needed to speed up the processor
 
     jet = get_four_vec_fromPtEtaPhiM(
             None,
@@ -22,13 +23,17 @@ def getJets(events, corrector, pt_var=''):
     
     jet['pt'] = jet_pt_var[jet_presel]
     
+    if scale_res != '':
+        jmr = JMR(seed=123)
+        jet = jmr.get(jet, scale=scale_res[0], res=scale_res[1])
+    
     jet['id'] = events.jetpuppi_idpass[jet_presel]
     jet['btag'] = events.jetpuppi_btag[jet_presel]
     
     return jet
 
 
-def getFatjets(events, corrector, pt_var=''):
+def getFatjets(events, corrector, pt_var='', scale_res = ''):
     """takes a set of events and a set of weights and
     weights the fatjet pts of those events according to
     the variation given."""
@@ -45,6 +50,10 @@ def getFatjets(events, corrector, pt_var=''):
     fatjet_pt_var = corrector.get(fatjet, pt_var)
     
     fatjet['pt'] = fatjet_pt_var
+    
+    if scale_res != '':
+        jmr = JMR(seed=123)
+        fatjet = jmr.get(fatjet, scale=scale_res[0], res=scale_res[1])
     
     fatjet['tau1'] = events.fatjet_tau1
     fatjet['tau2'] = events.fatjet_tau2

@@ -37,9 +37,9 @@ class JES:
             # So let's just bounce back the values we got in the first place
             #ak.ones_like(ak.num(jet.pt, axis=1))
             return jet.pt
-        elif variation == 'up':
+        elif variation == '_up':
             return jet.pt * (1 + jes)
-        elif variation == 'down':
+        elif variation == '_down':
             return jet.pt * (1 - jes)
 
 
