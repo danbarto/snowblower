@@ -303,6 +303,9 @@ class FlatProcessor(processor.ProcessorABC):
         output[dataset]['sumWeight2'] += sumw2
         output[dataset]['nChunk'] += 1
         
+        #presel
+        if dataset in ['WJetsToLNu_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU', 'WJetsToLNu_GenMET-100_TuneCUETP8M1_14TeV-madgraphMLM-pythia8_200PU']:
+            events = events[events.lheweight_size!=0]
         #define objects
         
         #electrons
@@ -399,11 +402,13 @@ class FlatProcessor(processor.ProcessorABC):
         #find some easy way to list all the datasets that are in signal?
         lheweights = events.lheweight_val
         lheweight_ratio = {}
-        for i in range(363,463):
-            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
-        for i in [463,464]:
-            lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
-        for i in [5, 10, 15, 20, 30, 40]:
+        #for i in range(363,463):
+        #    lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
+        #for i in range(150,251):
+        #    lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
+        #for i in [463,464]:
+        #    lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
+        for i in range(0,113):
             lheweight_ratio[i] = lheweights[:,i]/lheweights[:,0]
         
         variations = ['', '_up', '_down']
@@ -505,21 +510,21 @@ class FlatProcessor(processor.ProcessorABC):
                     w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)
 
                     if tagger == '_0b_up':
-                        w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*1.05
+                        w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*1.1
                     if tagger == '_0b_down':
-                         w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*0.95
+                        w_0b = get_weight(self.effs[dataset]['0b'], fatjet.pt, fatjet.eta)*0.9
                     if tagger == '_1b_up':
-                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*1.05
+                        w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*1.1
                     if tagger == '_1b_down':
-                         w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*0.95
+                        w_1b = get_weight(self.effs[dataset]['1b'], fatjet.pt, fatjet.eta)*0.9
                     if tagger == '_2b_up':
-                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*1.05
+                        w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*1.1
                     if tagger == '_2b_down':
-                         w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*0.95
+                        w_2b = get_weight(self.effs[dataset]['2b'], fatjet.pt, fatjet.eta)*0.9
                     if tagger == '_1h_up':
-                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*1.05
+                        w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*1.1
                     if tagger == '_1h_down':
-                         w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*0.95
+                        w_1h = get_weight(self.effs[dataset]['1h'], fatjet.pt, fatjet.eta)*0.9
 
                     w_all = w_0b * zerob + w_1b * oneb + w_2b * twob # + w_1h * onehiggs  # this should work
                     if not np.isnan(sum(sum(self.effs[dataset]['1h'].counts))):
