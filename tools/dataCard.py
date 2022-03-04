@@ -106,31 +106,44 @@ class dataCard:
             for p in self.processes[b]:
                 self.uncertaintyVal[(u,b,p)] = round(val,self.precision)
 
+
     def specifyUncertainty(self, u, b, p, val):
-        if u not in self.uncertainties:
-            print("This uncertainty has not been added yet!",u,"Available:",self.uncertainties)
+        '''
+        If uncertainty is NOT symmetric, val has to be a tuple of (down, up)!
+        '''
+        if u.replace('Up','').replace('Down','') not in self.uncertainties:
+            print ("This uncertainty has not been added yet!",u,"Available:",self.uncertainties)
             return
         if b not in self.bins:
-            print("This bin has not been added yet!",b,"Available:",self.bins)
+            print ("This bin has not been added yet!",b,"Available:",self.bins)
             return
         if p not in self.processes[b]:
-            print("Process ", p," is not in bin",b,". Available for ", b,":",self.processes[b])
+            print ("Process ", p," is not in bin",b,". Available for ", b,":",self.processes[b])
             return
-        if val<0:
-            print("Warning! Found negative uncertainty %f for yield %f in %r. Reversing sign under the assumption that the correlation pattern is irrelevant (check!)."%(val, self.expectation[(b, p)], (u,b,p)))
-            _val=1.0
+        if type(val) == type(()):
+            #print u, b, p, val
+            self.uncertaintyVal[(u,b,p)] = round(1,self.precision) # Dummy entry
+            self.uncertaintyVal[(u+'Down',b,p)] = round(max(val[0],0),self.precision)
+            self.uncertaintyVal[(u+'Up',b,p)] = round(max(val[1],0),self.precision)
         else:
-            _val = val
-        self.uncertaintyVal[(u,b,p)] = round(_val,self.precision)
+            if val<0:
+    #      assert self.expectation[(b, p)]<0.1, "Found negative uncertainty %f for yield %f in %r."%(val, self.expectation[(b, p)], (u,b,p))
+                print ("Warning! Found negative uncertainty %f for yield %f in %r. Reversing sign under the assumption that the correlation pattern is irrelevant (check!)."%(val, self.expectation[(b, p)], (u,b,p)))
+                _val=1.0
+            else:
+                _val = val
+            self.uncertaintyVal[(u,b,p)] = round(_val,self.precision)
 
     def getUncertaintyString(self, k):
         u, b, p = k
         if self.uncertaintyString[u].count('gmN'):
-            if (u,b,p) in self.uncertaintyVal and self.uncertaintyVal[(u,b,p)]>0.:
+            if ((u, b, p) in self.uncertaintyVal) and self.uncertaintyVal[(u,b,p)]>0.:
                 n = float(self.uncertaintyString[u].split(" ")[1])
                 return self.mfs(self.expectation[(b, p)]/float(n))
             else: return '-'
-        if (u,b,p) in self.uncertaintyVal:
+        if ((u+'Up',b,p) in self.uncertaintyVal) and ((u+'Down',b,p) in self.uncertaintyVal):
+            return "%s/%s"%(self.mfs(self.uncertaintyVal[(u+'Down',b,p)]), self.mfs(self.uncertaintyVal[(u+'Up',b,p)]))
+        elif (u,b,p) in self.uncertaintyVal:
             return self.mfs(self.uncertaintyVal[(u,b,p)])
         return '-'
 
