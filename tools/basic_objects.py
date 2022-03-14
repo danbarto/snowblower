@@ -1,5 +1,6 @@
-from tools.helpers import get_four_vec_fromPtEtaPhiM
+from tools.helpers import get_four_vec_fromPtEtaPhiM, match
 from tools.jmr import JMR
+import awkward as ak
 
 #can add pt and eta cuts in later
 
@@ -32,20 +33,48 @@ def getJets(events, corrector, pt_var='', scale_res = '', delphes=False):
         jet['btag'] = events.jetpuppi_btag[jet_presel]
         
     elif delphes == True:
-        jet_presel = (events.JetPUPPILoose.PT>20)  # NOTE: careful with this presel, but needed to speed up the processor
+        jet_l_presel = (events.JetPUPPILoose.PT>20)  # NOTE: careful with this presel, but needed to speed up the processor
 
-        jet = get_four_vec_fromPtEtaPhiM(
+        jet_l = get_four_vec_fromPtEtaPhiM(
                 None,
-                pt = events.JetPUPPILoose.PT[jet_presel],
-                eta = events.JetPUPPILoose.Eta[jet_presel],
-                phi = events.JetPUPPILoose.Phi[jet_presel],
-                M = events.JetPUPPILoose.Mass[jet_presel],
+                pt = events.JetPUPPILoose.PT[jet_l_presel],
+                eta = events.JetPUPPILoose.Eta[jet_l_presel],
+                phi = events.JetPUPPILoose.Phi[jet_l_presel],
+                M = events.JetPUPPILoose.Mass[jet_l_presel],
                 copy = False,
             )
+        
+        jet_t_presel = (events.JetPUPPITight.PT>20)  # NOTE: careful with this presel, but needed to speed up the processor
 
+        jet_t = get_four_vec_fromPtEtaPhiM(
+                None,
+                pt = events.JetPUPPITight.PT[jet_t_presel],
+                eta = events.JetPUPPITight.Eta[jet_t_presel],
+                phi = events.JetPUPPITight.Phi[jet_t_presel],
+                M = events.JetPUPPITight.Mass[jet_t_presel],
+                copy = False,
+            )
+        
+        jet_t = jet_t[~match(jet_t, jet_l, deltaRCut=0.1)]
+        
+        #jet_presel = (events.JetPUPPI.PT>20)  # NOTE: careful with this presel, but needed to speed up the processor
+
+        #jet = get_four_vec_fromPtEtaPhiM(
+        #        None,
+        #        pt = events.JetPUPPI.PT[jet_presel],
+        #        eta = events.JetPUPPI.Eta[jet_presel],
+        #        phi = events.JetPUPPI.Phi[jet_presel],
+        #        M = events.JetPUPPI.Mass[jet_presel],
+        #        copy = False,
+        #    )
+        
+        #jet = jet[match(jet, jet_l, deltaRCut=0.1)]
+        
+        jet = ak.concatenate((jet_l,jet_t),axis=1)
+        
         jet_pt_var = corrector.get(jet, pt_var)
-
-        jet['pt'] = jet_pt_var[jet_presel]
+        
+        jet['pt'] = jet_pt_var
 
         if scale_res != '':
             jmr = JMR(seed=123)
