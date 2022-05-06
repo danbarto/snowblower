@@ -345,19 +345,23 @@ def addUncertainties(ax, axis, h, selection, up_vars, down_vars, overflow='over'
     
 def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
               signals=[],
-              plot_dir = '/home/users/$USER/public_html/HbbMET/background/'):
+              plot_dir = '/home/users/$USER/public_html/HbbMET/background/',
+              shape=False):
         histos = {}
         
         tmp1 = output[histo].copy()
         tmp1 = tmp1.rebin(axis, bins)
         
         keys = tmp1.values().keys()
+        
+        overbins = 'all'
+        if histo in ['n_AK4', 'NH_weight', 'AK8_sdmass']:
+            overbins = 'over'
                 
         for sample in keys:
             h1 = Hist1D.from_bincounts(
-                tmp1.values(overflow = 'all')[sample].T,
-                (tmp1.axis(axis).edges(overflow = 'all')),
-                errors = np.sqrt(tmp1.values(sumw2=True, overflow = 'all')[sample][1].T),
+                tmp1.values(overflow = overbins)[sample].T,
+                (tmp1.axis(axis).edges(overflow = overbins)),
             )
             histos[sample] = h1
 
@@ -371,49 +375,75 @@ def makePlot2(output, histo, axis, bins, xlabel, labels, colors,
         order = [('other',), ('WJetsToLNu',), ('TT',), ('QCD_bEnriched_HT',), ('ZJetsToNuNu_HT',),]
         total_mc = get_total(histos, backgrounds)
         
-        fig, (ax) = plt.subplots(figsize=(10,10))
+        fig, (ax) = plt.subplots(figsize=(11.75,10))
         hep.cms.label(
-            'Preliminary',
+            'Phase-2 Simulation Preliminary',
+            data=True,
             loc=0,
             ax=ax,
             #lumi = 3000,
             rlabel = r'$3000\ fb^{-1}\ (14\ TeV)$',
         )
+        
+        if shape:
+            back_hist_type = 'step'
+            back_stack = False
+            density = True
+            y_label = 'a.u.'
+            
+        if not shape:
+            back_hist_type = 'fill'
+            back_stack = True
+            density = False    
+            y_label = r'Events'
+        
         if backgrounds != []:
             hep.histplot(
                 [histos[sample].counts for sample in order],
                 histos[edge].edges,
                 #w2=[(hists[x].errors)**2 for x in keys ],
-                histtype="fill",
-                density = False,
-                stack=True,
-                label=[labels[sample] for sample in order],
-                color=[colors[sample] for sample in order],
-                ax=ax
+                histtype= back_hist_type,
+                density = density,
+                stack = back_stack,
+                label = [labels[sample] for sample in order],
+                color = [colors[sample] for sample in order],
+                ax = ax
             )
         
         hep.histplot(
-            [histos[sample].counts for sample in signals[1:4]],
+            [histos[sample].counts for sample in signals[1:5]],
             histos[edge].edges,
-            w2=[(histos[sample].errors)**2 for sample in signals[1:4]],
-            histtype="step",
-            density = False,
-            stack=False,
-            label=[labels[sample] for sample in signals[1:4]],
-            ax=ax
+            #w2=[(histos[sample].errors)**2 for sample in signals[1:4]],
+            histtype = "step",
+            density = density,
+            stack = False,
+            label = [labels[sample] for sample in signals[1:5]],
+            color = list(colors.values())[0:4],
+            #linestyle = '-',
+            ax = ax
         )
         
+        #plt.axvline(50, linestyle='--', color='gray')
+        #plt.axvline(100, linestyle='--', color='gray')
+        #plt.axvline(150, linestyle='--', color='gray')
+
         ax.set_xlabel(xlabel)
-        ax.set_ylabel(r'Events')
+        ax.set_ylabel(y_label)
         ax.set_yscale('log')
-        ax.legend(prop={'size': 10})
+        ax.legend(prop={'size': 11})
+        if histo in ['met_pt']:
+            ax.set_xlim(100)
+        if histo in ['AK4_QCD_veto', 'AK8_QCD_veto', 'dphi_AK4_MET', 'dphi_AK8_MET']:
+            ax.set_xlim(right=3.5)
+        if histo in ['AK8_sdmass', 'met_pt', 'min_AK8_pt', 'n_AK4']:
+            ax.set_ylim(1e-5)
         
         #add_uncertainty(total_mc, ax, ratio=True)
 
         plot_dir = os.path.expandvars(plot_dir)
         finalizePlotDir(plot_dir)
         fig.savefig(plot_dir+str(histo)+'.png')
-        #fig.savefig(plot_dir+str(histo)+'.pdf')
+        fig.savefig(plot_dir+str(histo)+'.pdf')
 
 def scale_and_merge_histos(histogram, samples, fileset, lumi=3000):
     """
